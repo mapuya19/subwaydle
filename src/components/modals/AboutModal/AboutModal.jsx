@@ -13,6 +13,17 @@ const AboutModal = (props) => {
     <Modal closeIcon open={open} onClose={handleClose} size='tiny' className={isDarkMode ? 'about-modal dark' : 'about-modal'}>
       <Modal.Header>How to Play</Modal.Header>
       <Modal.Content scrolling>
+        <Header as='h4'>About This Version</Header>
+        <p><strong>Subwaydle Remastered</strong> is an enhanced fork of the original <a href="https://www.subwaydle.com" target="_blank" rel="noreferrer">Subwaydle</a>. 
+        This version includes several improvements, such as:</p>
+        <ul>
+          <li><strong>Route filtering logic</strong> that prioritizes direct, efficient transit paths. </li>
+          <li><strong>Practice mode</strong> with support for Weekday, Weekend, Late Night, and Accessible route options</li>
+          <li><strong>Performance improvements</strong> with lazy loading of game data, making page load faster</li>
+        </ul>
+        <p>See the <a href="https://github.com/mapuya19/subwaydle" target="_blank" rel="noreferrer">source code</a> for more details.</p>
+
+        <Header as='h4'>How to Play</Header>
         <p>Guess the <strong>SUBWAYDLE</strong> in 6 tries.</p>
         <p>Each guess must a be a <strong>valid subway trip involving 3 trains</strong> using available transfers between them.</p>
         <p>You need to guess a specific set of three trains that can make the trip.</p>
@@ -153,7 +164,7 @@ const AboutModal = (props) => {
           its <a href="https://github.com/hannahcode/wordle" target="_blank" rel="noreferrer">open-source clone</a>, <a href="https://nerdlegame.com/" target="_blank" rel="noreferrer">Nerdle</a>,
           and <a href="https://www.nytransitmuseum.org/">New York Transit Museum</a> Trivia Nights.</p>
 
-        <p><a href="https://github.com/mapuay19/subwaydle" target="_blank" rel="noreferrer">Source code</a>.</p>
+        <p><a href="https://github.com/mapuya19/subwaydle" target="_blank" rel="noreferrer">Source code</a>.</p>
       </Modal.Content>
     </Modal>
   );
