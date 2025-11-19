@@ -1,26 +1,12 @@
-import weekdayAnswers from './../data/weekday/answers.json';
-import weekdaySolutions from './../data/weekday/solutions.json';
-import weekdayRoutings from './../data/weekday/routings.json';
-import weekendAnswers from './../data/weekend/answers.json';
-import weekendSolutions from './../data/weekend/solutions.json';
-import weekendRoutings from './../data/weekend/routings.json';
-import nightAnswers from './../data/night/answers.json';
-import nightSolutions from './../data/night/solutions.json';
-import nightRoutings from './../data/night/routings.json';
-import accessibleAnswers from './../data/accessible/answers.json';
-import accessibleSolutions from './../data/accessible/solutions.json';
-import accessibleRoutings from './../data/accessible/routings.json';
 import transfers from './../data/transfers.json';
+import { getGameData, todayGameIndex, NIGHT_GAMES } from './gameDataLoader';
 
 const ROUTES_WITH_NO_WEEKEND_SERVICE = ['B', 'W'];
 const ROUTES_WITH_NO_NIGHT_SERVICE = ['B', 'C', 'W', 'GS'];
-const GAME_EPOCH = new Date('January 29, 2022 00:00:00').valueOf();
-export const NIGHT_GAMES = [350, 351];
 const ACCESSIBLE_GAME = 793;
 const DEKALB_AV_FLATBUSH_STOP = "R30";
 
 const today = new Date();
-const now = Date.now();
 
 const isSimilarToAnswerTrain = (guess, index) => {
   let begin;
@@ -87,73 +73,47 @@ const retrieveSubrouting = (train, routings, begin, end) => {
 
 export const isWeekend = [0, 6].includes(today.getDay());
 
+// Re-export from gameDataLoader for backwards compatibility
+export { todayGameIndex, NIGHT_GAMES };
+
+const getGameModeFlags = () => {
+  const index = todayGameIndex();
+  return {
+    isNight: NIGHT_GAMES.includes(index),
+    isAccessible: index === ACCESSIBLE_GAME,
+    isWeekend: isWeekend,
+  };
+};
+
 export const routesWithNoService = () => {
+  const { isNight, isWeekend: isWeekendFlag } = getGameModeFlags();
   if (isNight) {
     return ROUTES_WITH_NO_NIGHT_SERVICE;
   }
-  if (isWeekend) {
+  if (isWeekendFlag) {
     return ROUTES_WITH_NO_WEEKEND_SERVICE;
   }
   return [];
 }
 
 export const isValidGuess = (guess) => {
+  const { solutions } = getGameData();
   const flattenedGuess = guess.join('-');
-  if (isNight) {
-    return !!nightSolutions[flattenedGuess];
-  }
-  if (isAccessible) {
-    return !!accessibleSolutions[flattenedGuess];
-  }
-  if (isWeekend) {
-    return !!weekendSolutions[flattenedGuess];
-  }
-  return !!weekdaySolutions[flattenedGuess];
+  return !!solutions[flattenedGuess];
 }
 
-export const todayGameIndex = () => {
-  return Math.floor(daysBetween(GAME_EPOCH, now));
-}
-
-const treatAsUTC = (date) => {
-  const result = new Date(date);
-  result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
-  return result;
-}
-
-const daysBetween = (startDate, endDate) => {
-  const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  return (treatAsUTC(endDate) - treatAsUTC(startDate)) / millisecondsPerDay;
-}
-
-export const isNight = NIGHT_GAMES.includes(todayGameIndex());
-export const isAccessible = todayGameIndex() === ACCESSIBLE_GAME;
+export const isNight = getGameModeFlags().isNight;
+export const isAccessible = getGameModeFlags().isAccessible;
 
 const todaysRoutings = () => {
-  if (isNight) {
-    return nightRoutings;
-  }
-  if (isAccessible) {
-    return accessibleRoutings;
-  }
-  if (isWeekend) {
-    return weekendRoutings;
-  }
-  return weekdayRoutings;
+  const { routings } = getGameData();
+  return routings;
 }
 
 export const todaysTrip = () => {
+  const { answers } = getGameData();
   const index = todayGameIndex();
-  if (isNight) {
-    return nightAnswers[index % nightAnswers.length];
-  }
-  if (isAccessible) {
-    return accessibleAnswers[index % accessibleAnswers.length];
-  }
-  if (isWeekend) {
-    return weekendAnswers[index % weekendAnswers.length];
-  }
-  return weekdayAnswers[index % weekdayAnswers.length];
+  return answers[index % answers.length];
 }
 
 export const flattenedTodaysTrip = () => {
@@ -161,16 +121,8 @@ export const flattenedTodaysTrip = () => {
 }
 
 export const todaysSolution = () => {
-  if (isNight) {
-    return weekendSolutions[todaysTrip().join("-")];
-  }
-  if (isAccessible) {
-    return accessibleSolutions[todaysTrip().join("-")];
-  }
-  if (isWeekend) {
-    return weekendSolutions[todaysTrip().join("-")];
-  }
-  return weekdaySolutions[todaysTrip().join("-")];
+  const { solutions } = getGameData();
+  return solutions[todaysTrip().join("-")];
 }
 
 export const isWinningGuess = (guess) => {

@@ -1,9 +1,10 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
-import { Header, Segment, Icon, Message, Popup } from 'semantic-ui-react';
+import { Header, Segment, Icon, Message, Popup, Loader, Dimmer } from 'semantic-ui-react';
 
 import GameGrid from './components/GameGrid';
 import Keyboard from './components/Keyboard';
 
+import { loadGameData } from './utils/gameDataLoader';
 import {
   isAccessible,
   isNight,
@@ -41,6 +42,7 @@ const StatsModal = lazy(() => import('./components/StatsModal'));
 const SettingsModal = lazy(() => import('./components/SettingsModal'));
 
 const App = () => {
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [isGameWon, setIsGameWon] = useState(false);
   const [isGameLost, setIsGameLost] = useState(false);
@@ -55,34 +57,45 @@ const App = () => {
   const [similarRoutes, setSimilarRoutes] = useState([]);
   const [similarRoutesIndexes, setSimilarRoutesIndexes] = useState({});
   const [correctRoutes, setCorrectRoutes] = useState([]);
-  const [guesses, setGuesses] = useState(() => {
-    const loaded = loadGameStateFromLocalStorage();
-    if (loaded?.answer !== flattenedTodaysTrip()) {
-      if (isNewToGame() && window.location === window.parent.location) {
-        setIsAboutOpen(true);
-      }
-      return [];
-    }
-    const gameWasWon = loaded.guesses.map((g) => g.join('-')).includes(flattenedTodaysTrip())
-    if (gameWasWon) {
-      setIsGameWon(true);
-      setIsSolutionsOpen(true);
-    }
-    if (loaded.guesses.length === 6 && !gameWasWon) {
-      setIsGameLost(true)
-      setIsSolutionsOpen(true);
-    }
-    updateGuessStatuses(loaded.guesses, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes);
-    return loaded.guesses;
-  });
+  const [guesses, setGuesses] = useState([]);
   const [stats, setStats] = useState(() => loadStats());
   const [settings, setSettings] = useState(() => loadSettings());
 
-  const solution = todaysSolution();
+  // Preload game data on mount
+  useEffect(() => {
+    loadGameData().then(() => {
+      setIsDataLoaded(true);
+      // Initialize guesses after data is loaded
+      const loaded = loadGameStateFromLocalStorage();
+      if (loaded?.answer !== flattenedTodaysTrip()) {
+        if (isNewToGame() && window.location === window.parent.location) {
+          setIsAboutOpen(true);
+        }
+        setGuesses([]);
+      } else {
+        const gameWasWon = loaded.guesses.map((g) => g.join('-')).includes(flattenedTodaysTrip());
+        if (gameWasWon) {
+          setIsGameWon(true);
+          setIsSolutionsOpen(true);
+        }
+        if (loaded.guesses.length === 6 && !gameWasWon) {
+          setIsGameLost(true);
+          setIsSolutionsOpen(true);
+        }
+        updateGuessStatuses(loaded.guesses, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes);
+        setGuesses(loaded.guesses);
+      }
+    }).catch((error) => {
+      console.error('Failed to load game data:', error);
+      // Still set loaded to true to show error state
+      setIsDataLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
+    if (!isDataLoaded) return;
     saveGameStateToLocalStorage({ guesses, answer: flattenedTodaysTrip() })
-  }, [guesses])
+  }, [guesses, isDataLoaded])
 
   const onChar = useCallback((routeId) => {
     if (!isStatsOpen && !isGameWon && currentGuess.length < 3 && guesses.length < ATTEMPTS) {
@@ -189,6 +202,17 @@ const App = () => {
   }
 
   const isDarkMode = (NIGHT_GAMES.includes(todayGameIndex())) || (todayGameIndex() > Math.max(...NIGHT_GAMES) && settings.display.darkMode);
+
+  // Don't render game until data is loaded
+  if (!isDataLoaded) {
+    return (
+      <Dimmer active inverted>
+        <Loader size="large">Loading game data...</Loader>
+      </Dimmer>
+    );
+  }
+
+  const solution = todaysSolution();
 
   return (
     <div className={"outer-app-wrapper " + (isDarkMode ? 'dark' : '')}>
