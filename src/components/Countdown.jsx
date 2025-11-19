@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Header } from 'semantic-ui-react';
 
 const formatNumber = (number) => {
@@ -10,11 +10,14 @@ const formatNumber = (number) => {
 }
 
 const Countdown = () => {
-  const midnight = new Date();
-  midnight.setHours(24);
-  midnight.setMinutes(0);
-  midnight.setSeconds(0);
-  midnight.setMilliseconds(0);
+  const midnight = useMemo(() => {
+    const date = new Date();
+    date.setHours(24);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    return date;
+  }, []);
 
   const [countDown, setCountDown] = useState(
     (midnight - Date.now()) / 1000

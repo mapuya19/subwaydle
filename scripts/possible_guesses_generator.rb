@@ -61,6 +61,7 @@ patterns.each do |p, routes|
           transfers1 << s2
 
           transfers1.each do |t1|
+            next if path1.include?(t1)
             station_stops[t1].each do |r2|
               next if r2 == r1
               if routings[r2].include?(s1)
@@ -76,13 +77,16 @@ patterns.each do |p, routes|
                   break if subrouting1.include?(s3) || [transfers[s3]].flatten.compact.any? { |s| path1.include?(s) }
 
                   path2 = subrouting2[0..i2n]
+                  next if (path2[1..-1] & path1).any?
                   next_station2 = subrouting2[i2n + 1]
                   transfers2 = [transfers[s3]].flatten.compact
                   transfers2 << s3
 
                   transfers2.each do |t2|
+                    next if path1.include?(t2) || path2.include?(t2)
                     station_stops[t2].each do |r3|
                       next if r3 == r2
+                      next if r3 == r1
                       if routings[r3].include?(t1)
                         r3_t1_index = routings[r3].index(t1)
                         r3_t2_index = routings[r3].index(t2)
@@ -97,6 +101,7 @@ patterns.each do |p, routes|
                           break if subrouting1.include?(s4) || subrouting2.include?(s4) || [transfers[s4]].flatten.compact.any? { |s| path1.include?(s) } || [transfers[s4]].flatten.compact.any? { |s| path2.include?(s) }
 
                           path3 = subrouting3[0..i3n]
+                          next if (path3[1..-1] & (path1 + path2)).any?
 
                           route_exists_from_begin_to_end = false
                           ([transfers[s1]].flatten.compact + [s1]).each do |ts1|
@@ -177,11 +182,11 @@ patterns.each do |p, routes|
 
   picked_solutions = solutions.map { |k, v|
     possible_solutions = v.sort_by { |s| s[:travel_distance_factor] }.slice(0, [1, v.size / 3].max).shuffle
-    picked = possible_solutions.find { |s| s[:travel_distance_factor] < 1.6 && s[:minimum_distance_between_stations] >= 0.50 && s[:minimum_distance_progress_factor] >= -0.25 } || possible_solutions.first
+    picked = possible_solutions.find { |s| s[:travel_distance_factor] < 1.4 && s[:minimum_distance_between_stations] >= 0.50 && s[:minimum_distance_progress_factor] >= -0.25 } || possible_solutions.first
     [k.join("-"), picked]
   }.to_h
 
-  bad_solutions = picked_solutions.select { |_, v| v[:travel_distance_factor] >= 1.6 }.map { |k, _| k}.map { |k| k.split("-") }
+  bad_solutions = picked_solutions.select { |_, v| v[:travel_distance_factor] >= 1.4 }.map { |k, _| k}.map { |k| k.split("-") }
 
   file = File.open("../src/data/#{p}/answers.json", "w")
   file.puts JSON.pretty_generate((answers.to_a - bad_solutions).shuffle)

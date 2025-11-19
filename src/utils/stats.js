@@ -1,5 +1,4 @@
 import {
-  GameStats,
   loadStatsFromLocalStorage,
   saveStatsToLocalStorage,
 } from './localStorage'

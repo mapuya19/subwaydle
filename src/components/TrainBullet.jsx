@@ -43,8 +43,11 @@ const TrainBullet = (props) => {
   const alternateName = train.alternate_name
   let shortenedAlternateName = alternateName && alternateName[0];
   let match;
-  if (match = alternateName?.match(/^(?<number>[0-9]+)/)) {
-    shortenedAlternateName = match.groups.number;
+  if (alternateName) {
+    match = alternateName.match(/^(?<number>[0-9]+)/);
+    if (match) {
+      shortenedAlternateName = match.groups.number;
+    }
   }
 
 

@@ -66,7 +66,7 @@ const SolutionModal = (props) => {
       <Modal.Header>{ title }</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-        <MapFrame />
+        { open && <MapFrame /> }
           <Header as='h3'>Today's Journey</Header>
           { !isAccessible &&
             <>
