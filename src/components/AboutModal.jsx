@@ -148,17 +148,11 @@ const AboutModal = (props) => {
 
         <Header as='h4'>About</Header>
 
-        <p>Subwaydles around the world: <a href="https://hk.subwaydle.com" target="_blank" rel="noreferrer">Hong Kong</a>, <a href="https://london.subwaydle.com" target="_blank" rel="noreferrer">London</a>.</p>
-
-        <p>Community forks of Subwaydles maintained by other creators: <a href="https://ubahndle.hangzhi.de" target="_blank" rel="noreferrer">Berlin</a>, <a href="https://www.mbtadle.com" target="_blank" rel="noreferrer">Boston</a>.</p>
-
         <p>Inspired by <a href="https://www.powerlanguage.co.uk/wordle/" target="_blank" rel="noreferrer">Wordle</a>,
           its <a href="https://github.com/hannahcode/wordle" target="_blank" rel="noreferrer">open-source clone</a>, <a href="https://nerdlegame.com/" target="_blank" rel="noreferrer">Nerdle</a>,
           and <a href="https://www.nytransitmuseum.org/">New York Transit Museum</a> Trivia Nights.</p>
 
-        <p>Created by <a href="https://www.sunny.ng" target="_blank" rel="noreferrer">Sunny Ng</a><a href='https://twitter.com/_blahblahblah' target='_blank' rel="noreferrer"><Icon name='twitter' link /></a></p>
-        <p><a href="https://github.com/blahblahblah-/subwaydle" target="_blank" rel="noreferrer">Source code</a>.</p>
-        <p>Check out my other NYC Subway related projects: <a href="https://www.theweekendest.com" target="_blank" rel="noreferrer">The Weekendest</a> and <a href="https://www.goodservice.io" target="_blank" rel="noreferrer">goodservice.io</a>.</p>
+        <p><a href="https://github.com/mapuay19/subwaydle" target="_blank" rel="noreferrer">Source code</a>.</p>
       </Modal.Content>
     </Modal>
   );
