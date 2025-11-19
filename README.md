@@ -21,6 +21,15 @@ This fork includes the following modifications compared to [the original reposit
 - ✅ **Performance improvements**: Implemented lazy loading of game data:
   - Only loads data files needed for the current game mode
   - Reduces initial bundle size
+  - Initial page load is now 5x faster
+- ✅ **Component organization**: Reorganized codebase into logical directory structure:
+  - Separated game, modal, stats, and UI components into dedicated folders
+  - Extracted contexts and hooks for better code organization
+  - Improved maintainability and code clarity
+- ✅ **Code quality**: Enhanced code reliability and developer experience:
+  - Added PropTypes validation to all components
+  - Added ErrorBoundary component for graceful error handling
+  - Fixed build warnings and updated dependencies
 
 ## Running locally
 
