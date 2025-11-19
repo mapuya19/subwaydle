@@ -1,4 +1,4 @@
-# Subwaydle
+# Subwaydle-Remastered
 
 A fork of the Wordle-inspired NYC Subway daily puzzle game. Modified for real transit enthusiasts by prioritizing direct, efficient transit paths.
 
