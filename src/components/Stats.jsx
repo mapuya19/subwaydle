@@ -1,4 +1,3 @@
-import { Icon } from 'semantic-ui-react';
 import StatsBox from './StatsBox';
 import StatsHistogram from './StatsHistogram';
 
