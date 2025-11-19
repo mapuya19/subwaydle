@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Grid, Button } from 'semantic-ui-react';
 import Key from './Key';
 import routes from '../data/routes.json';
@@ -137,5 +138,17 @@ const Keyboard = (props) => {
     </Grid>
   );
 }
+
+Keyboard.propTypes = {
+  noService: PropTypes.arrayOf(PropTypes.string).isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+  onChar: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onEnter: PropTypes.func.isRequired,
+  correctRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  similarRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  presentRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  absentRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
 
 export default Keyboard;

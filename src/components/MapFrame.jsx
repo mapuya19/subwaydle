@@ -1,27 +1,34 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
 import { todaysTrip, todaysSolution } from '../utils/answerValidations';
 
 import stations from "../data/stations.json";
 import routes from "../data/routes.json";
-import shapes from "../data/shapes.json";
+
+import { MANHATTAN_TILT, DEFAULT_LNG, DEFAULT_LAT, DEFAULT_ZOOM } from '../utils/constants';
 
 import './MapFrame.scss';
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
-const MANHATTAN_TILT = 29;
-
-const MapFrame = (props) => {
+const MapFrame = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [lng, setLng] = useState(-73.98119);
-  const [lat, setLat] = useState(40.75855);
-  const [zoom, setZoom] = useState(12);
+  const [lng, setLng] = useState(DEFAULT_LNG);
+  const [lat, setLat] = useState(DEFAULT_LAT);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [shapes, setShapes] = useState(null);
   const solution = todaysSolution();
 
-  const stopsGeoJson = () => {
+  // Lazy load the large shapes.json file (996KB) to reduce initial bundle size
+  useEffect(() => {
+    import("../data/shapes.json").then((shapesModule) => {
+      setShapes(shapesModule.default);
+    });
+  }, []);
+
+  const stopsGeoJson = useCallback(() => {
     const stops = [
       solution.origin,
       solution.first_transfer_arrival,
@@ -47,9 +54,11 @@ const MapFrame = (props) => {
         }
       })
     };
-  }
+  }, [solution]);
 
-  const lineGeoJson = (line) => {
+  const lineGeoJson = useCallback((line) => {
+    if (!shapes) return null; // Wait for shapes to load
+    
     const route = routes[line.route];
     let shape;
     const beginCoord = [stations[line.begin].longitude, stations[line.begin].latitude];
@@ -86,8 +95,9 @@ const MapFrame = (props) => {
         "coordinates": coordinates
       }
     }
-  }
+  }, [shapes]);
 
+  // Initialize map once
   useEffect(() => {
     if (map.current) return; // initialize map only once
     map.current = new mapboxgl.Map({
@@ -105,8 +115,29 @@ const MapFrame = (props) => {
     });
     map.current.dragRotate.disable();
     map.current.touchZoomRotate.disableRotation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    map.current.on('load', () => {
+  // Add map layers when shapes data is loaded
+  useEffect(() => {
+    if (!map.current || !shapes) return;
+    
+    const addMapLayers = () => {
+      if (!map.current.loaded()) {
+        map.current.once('load', addMapLayers);
+        return;
+      }
+
+      // Remove existing layers if they exist
+      ['line-0', 'line-1', 'line-2', 'Stops'].forEach((layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.removeLayer(layerId);
+        }
+        if (map.current.getSource(layerId)) {
+          map.current.removeSource(layerId);
+        }
+      });
+
       map.current.resize();
       const trip = todaysTrip();
       const solution = todaysSolution();
@@ -129,6 +160,7 @@ const MapFrame = (props) => {
         },
       ].forEach((line, i) => {
         const lineJson = lineGeoJson(line);
+        if (!lineJson) return;
         coordinates = coordinates.concat(lineJson.geometry.coordinates);
         const layerId = `line-${i}`;
         map.current.addSource(layerId, {
@@ -191,19 +223,27 @@ const MapFrame = (props) => {
           bearing: MANHATTAN_TILT,
         });
       }
-    });
+    };
 
-
-  });
+    addMapLayers();
+  }, [shapes, lineGeoJson, stopsGeoJson]);
 
   useEffect(() => {
     if (!map.current) return; // wait for map to initialize
-    map.current.on('move', () => {
+    const handleMove = () => {
       setLng(map.current.getCenter().lng.toFixed(4));
       setLat(map.current.getCenter().lat.toFixed(4));
       setZoom(map.current.getZoom().toFixed(2));
-    });
-  });
+    };
+    
+    map.current.on('move', handleMove);
+    
+    return () => {
+      if (map.current) {
+        map.current.off('move', handleMove);
+      }
+    };
+  }, []);
 
   return (
     <div>

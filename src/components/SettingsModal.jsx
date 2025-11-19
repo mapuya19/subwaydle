@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Checkbox, Icon, Popup } from 'semantic-ui-react';
 import { saveSettings, loadSettings, defaultSettings } from '../utils/settings';
 import { todayGameIndex, NIGHT_GAMES } from '../utils/answerValidations';
 
 import './SettingsModal.scss'
 
-const SettingsModal = (props, state) => {
+const SettingsModal = (props) => {
   const { open, handleClose, onSettingsChange, isDarkMode} = props;
   const [settings, setSettings] = useState(loadSettings());
 
@@ -76,5 +77,12 @@ const SettingsModal = (props, state) => {
 const showAnswerStatusBadgesHoverDetail = () => {
 
 }
+
+SettingsModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+  onSettingsChange: PropTypes.func.isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+};
 
 export default SettingsModal;

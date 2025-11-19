@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Grid, Button } from 'semantic-ui-react';
 import TrainBullet from './TrainBullet';
 
@@ -30,5 +31,24 @@ const Key = (props) => {
     </Grid.Column>
   )
 }
+
+Key.propTypes = {
+  id: PropTypes.string.isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+  isCorrect: PropTypes.bool,
+  isSimilar: PropTypes.bool,
+  isPresent: PropTypes.bool,
+  isAbsent: PropTypes.bool,
+};
+
+Key.defaultProps = {
+  disabled: false,
+  isCorrect: false,
+  isSimilar: false,
+  isPresent: false,
+  isAbsent: false,
+};
 
 export default Key;

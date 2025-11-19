@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Grid } from 'semantic-ui-react';
 import CompletedRow from './CompletedRow';
 import CurrentRow from './CurrentRow';
@@ -32,5 +33,13 @@ const GameGrid = (props) => {
     </Grid>
   );
 }
+
+GameGrid.propTypes = {
+  isDarkMode: PropTypes.bool.isRequired,
+  currentGuess: PropTypes.arrayOf(PropTypes.string).isRequired,
+  guesses: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
+  attempts: PropTypes.number.isRequired,
+  inPlay: PropTypes.bool.isRequired,
+};
 
 export default GameGrid;

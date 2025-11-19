@@ -1,12 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { Header, Segment, Icon, Message, Popup } from 'semantic-ui-react';
 
 import GameGrid from './components/GameGrid';
 import Keyboard from './components/Keyboard';
-import AboutModal from './components/AboutModal';
-import SolutionModal from './components/SolutionModal';
-import StatsModal from './components/StatsModal';
-import SettingsModal from './components/SettingsModal';
 
 import {
   isAccessible,
@@ -34,10 +30,15 @@ import { loadSettings } from './utils/settings';
 
 import stations from './data/stations.json';
 
+import { ATTEMPTS, ALERT_TIME_MS } from './utils/constants';
+
 import './App.scss';
 
-const ATTEMPTS = 6;
-const ALERT_TIME_MS = 2000;
+// Lazy load modals for better performance
+const AboutModal = lazy(() => import('./components/AboutModal'));
+const SolutionModal = lazy(() => import('./components/SolutionModal'));
+const StatsModal = lazy(() => import('./components/StatsModal'));
+const SettingsModal = lazy(() => import('./components/SettingsModal'));
 
 const App = () => {
   const [currentGuess, setCurrentGuess] = useState([]);
@@ -83,21 +84,21 @@ const App = () => {
     saveGameStateToLocalStorage({ guesses, answer: flattenedTodaysTrip() })
   }, [guesses])
 
-  const onChar = (routeId) => {
+  const onChar = useCallback((routeId) => {
     if (!isStatsOpen && !isGameWon && currentGuess.length < 3 && guesses.length < ATTEMPTS) {
       if (!routesWithNoService().includes(routeId)) {
         setCurrentGuess([...currentGuess, routeId]);
       }
     }
-  }
+  }, [isStatsOpen, isGameWon, currentGuess, guesses.length]);
 
-  const onDelete = () => {
+  const onDelete = useCallback(() => {
     if (currentGuess.length > 0) {
       setCurrentGuess(currentGuess.slice(0, currentGuess.length - 1));
     }
-  }
+  }, [currentGuess]);
 
-  const onEnter = () => {
+  const onEnter = useCallback(() => {
     const guessCount = guesses.length;
     if (isGameWon || isGameLost || guessCount === 6) {
       return;
@@ -153,7 +154,7 @@ const App = () => {
       setIsGameLost(true);
       setIsSolutionsOpen(true);
     }
-  }
+  }, [guesses, isGameWon, isGameLost, currentGuess, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes]);
 
   const onSolutionsClose = () => {
     setIsSolutionsOpen(false);
@@ -220,7 +221,7 @@ const App = () => {
           <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} to {stations[solution.destination].name} using 2 transfers.</Header>
         }
         { isAccessible &&
-          <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} ♿️ to {stations[solution.destination].name} ♿️ using 2 acceessible transfers.</Header>
+          <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} ♿️ to {stations[solution.destination].name} ♿️ using 2 accessible transfers.</Header>
         }
         <Segment basic className='game-grid-wrapper'>
           {
@@ -256,10 +257,12 @@ const App = () => {
             absentRoutes={absentRoutes}
           />
         </Segment>
-        <AboutModal open={isAboutOpen} isDarkMode={isDarkMode} handleClose={onAboutClose} />
-        <SolutionModal open={isSolutionsOpen} isDarkMode={isDarkMode} isGameWon={isGameWon}  handleModalClose={onSolutionsClose} stats={stats} guesses={guesses} />
-        <StatsModal open={isStatsOpen} isDarkMode={isDarkMode} stats={stats} handleClose={onStatsClose} />
-        <SettingsModal open={isSettingsOpen} isDarkMode={isDarkMode} handleClose={onSettingsClose} onSettingsChange={setSettings} />
+        <Suspense fallback={<div />}>
+          <AboutModal open={isAboutOpen} isDarkMode={isDarkMode} handleClose={onAboutClose} />
+          <SolutionModal open={isSolutionsOpen} isDarkMode={isDarkMode} isGameWon={isGameWon}  handleModalClose={onSolutionsClose} stats={stats} guesses={guesses} />
+          <StatsModal open={isStatsOpen} isDarkMode={isDarkMode} stats={stats} handleClose={onStatsClose} />
+          <SettingsModal open={isSettingsOpen} isDarkMode={isDarkMode} handleClose={onSettingsClose} onSettingsChange={setSettings} />
+        </Suspense>
       </Segment>
     </div>
   );

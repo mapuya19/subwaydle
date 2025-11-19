@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Modal, Header, Button, Icon } from 'semantic-ui-react';
 
 import Stats from './Stats';
@@ -10,9 +11,8 @@ import { todaysTrip, todaysSolution, isAccessible } from '../utils/answerValidat
 import { shareStatus } from '../utils/share';
 
 import stations from "../data/stations.json";
+import { ALERT_TIME_MS } from '../utils/constants';
 import './SolutionModal.scss';
-
-const BUTTON_PROMPT_MS = 2000;
 
 const SolutionModal = (props) => {
   const { open, handleModalClose, isDarkMode, isGameWon, stats, guesses } = props;
@@ -31,7 +31,7 @@ const SolutionModal = (props) => {
       setIsShareButtonShowCopied(true);
       setTimeout(() => {
         setIsShareButtonShowCopied(false)
-      }, BUTTON_PROMPT_MS);
+      }, ALERT_TIME_MS);
     }
   }
 
@@ -93,5 +93,14 @@ const SolutionModal = (props) => {
     </Modal>
   );
 }
+
+SolutionModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleModalClose: PropTypes.func.isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+  isGameWon: PropTypes.bool.isRequired,
+  stats: PropTypes.object.isRequired,
+  guesses: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
+};
 
 export default SolutionModal;

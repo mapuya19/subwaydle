@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Segment, Icon, Label } from 'semantic-ui-react';
 import TrainBullet from './TrainBullet';
 import { loadSettings } from '../utils/settings';
@@ -156,5 +157,11 @@ const AboutModal = (props) => {
     </Modal>
   );
 }
+
+AboutModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+};
 
 export default AboutModal;
