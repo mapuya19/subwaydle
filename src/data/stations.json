@@ -580,7 +580,7 @@
     "latitude": 40.737335
   },
   "L03": {
-    "name": "14 St–Union Sq.",
+    "name": "14 St–Union Sq",
     "longitude": -73.99073,
     "latitude": 40.734789
   },
@@ -981,8 +981,8 @@
   },
   "H01": {
     "name": "Aqueduct Racetrack",
-    "longitude": -73.835919,
-    "latitude": 40.672097
+    "longitude": -73.835254,
+    "latitude": 40.672369
   },
   "H02": {
     "name": "Aqueduct–N Conduit Av",
@@ -1615,7 +1615,7 @@
     "latitude": 40.737826
   },
   "133": {
-    "name": "Christopher St–Sheridan Sq",
+    "name": "Christopher St–Stonewall",
     "longitude": -74.002906,
     "latitude": 40.733422
   },
@@ -1710,7 +1710,7 @@
     "latitude": 40.671987
   },
   "239": {
-    "name": "Franklin Avenue–Medgar Evers College",
+    "name": "Franklin Av–Medgar Evers College",
     "longitude": -73.958131,
     "latitude": 40.670682
   },
@@ -1765,7 +1765,7 @@
     "latitude": 40.666235
   },
   "241": {
-    "name": "President Street–Medgar Evers College",
+    "name": "President St–Medgar Evers College",
     "longitude": -73.950683,
     "latitude": 40.667883
   },
@@ -2280,7 +2280,7 @@
     "latitude": 40.746325
   },
   "712": {
-    "name": "Woodside–61 St",
+    "name": "61 St–Woodside",
     "longitude": -73.902984,
     "latitude": 40.74563
   },

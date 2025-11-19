@@ -182,7 +182,9 @@ patterns.each do |p, routes|
 
   picked_solutions = solutions.map { |k, v|
     possible_solutions = v.sort_by { |s| s[:travel_distance_factor] }.slice(0, [1, v.size / 3].max).shuffle
-    picked = possible_solutions.find { |s| s[:travel_distance_factor] < 1.4 && s[:minimum_distance_between_stations] >= 0.50 && s[:minimum_distance_progress_factor] >= -0.25 } || possible_solutions.first
+    # Prefer solutions with no backtracking (minimum_distance_progress_factor >= 0)
+    # If none exist, fall back to the solution with the best (highest) progress factor
+    picked = possible_solutions.find { |s| s[:travel_distance_factor] < 1.4 && s[:minimum_distance_between_stations] >= 0.50 && s[:minimum_distance_progress_factor] >= 0 } || possible_solutions.sort_by { |s| -s[:minimum_distance_progress_factor] }.find { |s| s[:travel_distance_factor] < 1.4 && s[:minimum_distance_between_stations] >= 0.50 } || possible_solutions.first
     [k.join("-"), picked]
   }.to_h
 
