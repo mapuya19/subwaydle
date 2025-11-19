@@ -1,313 +1,153 @@
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Header, Segment, Icon, Message, Popup, Loader, Dimmer } from 'semantic-ui-react';
 
-import GameGrid from './components/GameGrid';
-import Keyboard from './components/Keyboard';
+import { GameGrid, Keyboard } from './components/game';
 
-import { loadGameData, isGameDataLoadedForMode } from './utils/gameDataLoader';
 import {
   isAccessible,
   isNight,
   routesWithNoService,
-  isValidGuess,
-  updateGuessStatuses,
-  flattenedTodaysTrip,
   todaysSolution,
-  todayGameIndex,
-  NIGHT_GAMES,
 } from './utils/answerValidations';
 
-import {
-  loadGameStateFromLocalStorage,
-  saveGameStateToLocalStorage,
-  isNewToGame
-} from './utils/localStorage';
-
-import { addStatsForCompletedGame, loadStats } from './utils/stats';
-
-import { loadSettings, saveSettings } from './utils/settings';
-
 import stations from './data/stations.json';
+import { ATTEMPTS } from './utils/constants';
 
-import { ATTEMPTS, ALERT_TIME_MS } from './utils/constants';
+import { useGameState } from './hooks/useGameState';
+import { useGameData } from './hooks/useGameData';
+import { usePracticeMode } from './hooks/usePracticeMode';
+import { useKeyboard } from './hooks/useKeyboard';
+import { useSettings, useDarkMode } from './contexts';
+import { useStats } from './contexts/StatsContext';
 
 import './App.scss';
 
 // Lazy load modals for better performance
-const AboutModal = lazy(() => import('./components/AboutModal'));
-const SolutionModal = lazy(() => import('./components/SolutionModal'));
-const StatsModal = lazy(() => import('./components/StatsModal'));
-const SettingsModal = lazy(() => import('./components/SettingsModal'));
-const PracticeModal = lazy(() => import('./components/PracticeModal'));
+const AboutModal = lazy(() => import('./components/modals/AboutModal'));
+const SolutionModal = lazy(() => import('./components/modals/SolutionModal'));
+const StatsModal = lazy(() => import('./components/stats/StatsModal'));
+const SettingsModal = lazy(() => import('./components/modals/SettingsModal'));
+const PracticeModal = lazy(() => import('./components/modals/PracticeModal'));
 
 const App = () => {
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [currentGuess, setCurrentGuess] = useState([]);
-  const [isGameWon, setIsGameWon] = useState(false);
-  const [isGameLost, setIsGameLost] = useState(false);
+  // Modal state
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isNotEnoughRoutes, setIsNotEnoughRoutes] = useState(false);
-  const [isGuessInvalid, setIsGuessInvalid] = useState(false);
-  const [absentRoutes, setAbsentRoutes] = useState([]);
-  const [presentRoutes, setPresentRoutes] = useState([]);
-  const [similarRoutes, setSimilarRoutes] = useState([]);
-  const [similarRoutesIndexes, setSimilarRoutesIndexes] = useState({});
-  const [correctRoutes, setCorrectRoutes] = useState([]);
-  const [guesses, setGuesses] = useState([]);
-  const [stats, setStats] = useState(() => loadStats());
-  const [settings, setSettings] = useState(() => loadSettings());
   const [isPracticeOpen, setIsPracticeOpen] = useState(false);
-  const [practiceGameIndex, setPracticeGameIndex] = useState(null);
-  const [urlPracticeMode, setUrlPracticeMode] = useState(null);
-  const [urlPracticeGameIndex, setUrlPracticeGameIndex] = useState(null);
-  const [previousPracticeMode, setPreviousPracticeMode] = useState(null);
 
-  // Read URL parameters on mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const practiceParam = urlParams.get('practice');
-    const gameParam = urlParams.get('game');
-    
-    if (practiceParam && gameParam !== null) {
-      const validModes = ['weekday', 'weekend', 'night', 'accessible'];
-      if (validModes.includes(practiceParam)) {
-        const gameIndex = parseInt(gameParam, 10);
-        if (!isNaN(gameIndex) && gameIndex >= 0) {
-          setUrlPracticeMode(practiceParam);
-          setUrlPracticeGameIndex(gameIndex);
-          
-          // Update settings to enable practice mode from URL
-          setSettings((prevSettings) => {
-            const updatedSettings = {
-              ...prevSettings,
-              practice: {
-                ...prevSettings.practice,
-                mode: practiceParam,
-                enabled: true,
-              }
-            };
-            saveSettings(updatedSettings);
-            return updatedSettings;
-          });
-        }
-      }
-    }
-  }, []); // Only run on mount
+  // Settings and stats from context
+  const { settings, setSettings } = useSettings();
+  const { stats, setStats } = useStats();
 
-  // Use URL params if available and practice is enabled, otherwise use settings
-  // If practice is disabled in settings, ignore URL params
-  const practiceMode = (settings.practice?.enabled && urlPracticeMode) 
-    ? urlPracticeMode 
-    : (settings.practice?.enabled ? settings.practice?.mode : null);
-  // Prefer practiceGameIndex (which is clamped) over urlPracticeGameIndex (which may be unclamped)
-  // This ensures we use the correct game index after data is loaded and clamped
-  const effectivePracticeGameIndex = (settings.practice?.enabled && practiceGameIndex !== null)
-    ? practiceGameIndex
-    : (settings.practice?.enabled && urlPracticeGameIndex !== null)
-    ? urlPracticeGameIndex
-    : null;
+  // Practice mode hook
+  const {
+    practiceMode,
+    effectivePracticeGameIndex,
+    practiceGameIndex,
+    setPracticeGameIndex,
+    urlPracticeGameIndex,
+    previousPracticeMode,
+    setPreviousPracticeMode,
+    handlePracticeModeChange,
+  } = usePracticeMode(settings, setSettings);
 
-  // Reset practice game index and clear state when switching modes
-  useEffect(() => {
-    // If practice mode changed (including switching to/from normal mode), reset everything
-    if (previousPracticeMode !== practiceMode) {
-      // Reset practice game index first
-      setPracticeGameIndex(null);
-      // Immediately clear all game state when switching modes
-      setGuesses([]);
-      setCurrentGuess([]);
-      setIsGameWon(false);
-      setIsGameLost(false);
-      setCorrectRoutes([]);
-      setSimilarRoutes([]);
-      setPresentRoutes([]);
-      setAbsentRoutes([]);
-      setSimilarRoutesIndexes({});
-      // Update previous mode after clearing state
-      setPreviousPracticeMode(practiceMode);
-    }
-  }, [practiceMode, previousPracticeMode]);
+  // Game state hook
+  const gameState = useGameState(practiceMode, effectivePracticeGameIndex);
+  const {
+    currentGuess,
+    setCurrentGuess,
+    isGameWon,
+    setIsGameWon,
+    isGameLost,
+    setIsGameLost,
+    guesses,
+    setGuesses,
+    isNotEnoughRoutes,
+    setIsNotEnoughRoutes,
+    isGuessInvalid,
+    setIsGuessInvalid,
+    absentRoutes,
+    setAbsentRoutes,
+    presentRoutes,
+    setPresentRoutes,
+    similarRoutes,
+    setSimilarRoutes,
+    similarRoutesIndexes,
+    setSimilarRoutesIndexes,
+    correctRoutes,
+    setCorrectRoutes,
+  } = gameState;
 
-  // Preload game data on mount and when practice mode changes
-  useEffect(() => {
-    setIsDataLoaded(false);
+  // Game data loading hook
+  const { isDataLoaded, isGameDataLoaded } = useGameData(
+    practiceMode,
+    effectivePracticeGameIndex,
+    urlPracticeGameIndex,
+    practiceGameIndex,
+    setPracticeGameIndex,
+    previousPracticeMode,
+    setPreviousPracticeMode,
+    setGuesses,
+    setCurrentGuess,
+    setIsGameWon,
+    setIsGameLost,
+    setIsAboutOpen,
+    setIsSolutionsOpen,
+    setCorrectRoutes,
+    setSimilarRoutes,
+    setPresentRoutes,
+    setAbsentRoutes,
+    setSimilarRoutesIndexes,
+  );
 
-    loadGameData(practiceMode).then((data) => {
-      // If in practice mode, use URL game index if available, otherwise select random
-      let gameIndex = null;
-      if (practiceMode && data.answers) {
-        if (urlPracticeGameIndex !== null) {
-          // Use game index from URL, ensure it's within bounds
-          gameIndex = Math.max(0, Math.min(urlPracticeGameIndex, data.answers.length - 1));
-          setPracticeGameIndex(gameIndex);
-        } else {
-          // Always generate a new random game index when entering practice mode
-          // This ensures a fresh game when switching from normal to practice
-          gameIndex = Math.floor(Math.random() * data.answers.length);
-          setPracticeGameIndex(gameIndex);
-        }
-      } else {
-        setPracticeGameIndex(null);
-      }
+  // Keyboard handlers hook
+  const { onChar, onDelete, onEnter } = useKeyboard({
+    isStatsOpen,
+    isGameWon,
+    isGameLost,
+    guesses,
+    setGuesses,
+    currentGuess,
+    setCurrentGuess,
+    practiceMode,
+    effectivePracticeGameIndex,
+    setIsGameWon,
+    setIsGameLost,
+    setIsSolutionsOpen,
+    setIsNotEnoughRoutes,
+    setIsGuessInvalid,
+    correctRoutes,
+    setCorrectRoutes,
+    similarRoutes,
+    setSimilarRoutes,
+    presentRoutes,
+    setPresentRoutes,
+    absentRoutes,
+    setAbsentRoutes,
+    similarRoutesIndexes,
+    setSimilarRoutesIndexes,
+    stats,
+    setStats,
+  });
 
-      setIsDataLoaded(true);
-      // Initialize guesses after data is loaded
-      const currentAnswer = flattenedTodaysTrip(practiceMode, gameIndex);
-      const loaded = loadGameStateFromLocalStorage(practiceMode, gameIndex);
-      
-      // Reset keyboard state and current guess when switching modes or starting a new game
-      setCorrectRoutes([]);
-      setSimilarRoutes([]);
-      setPresentRoutes([]);
-      setAbsentRoutes([]);
-      setSimilarRoutesIndexes({});
-      setCurrentGuess([]);
-      
-      if (loaded?.answer !== currentAnswer) {
-        if (isNewToGame(practiceMode, gameIndex) && window.location === window.parent.location && !practiceMode) {
-          setIsAboutOpen(true);
-        }
-        setGuesses([]);
-        setIsGameWon(false);
-        setIsGameLost(false);
-      } else {
-        const gameWasWon = loaded.guesses.map((g) => g.join('-')).includes(currentAnswer);
-        if (gameWasWon) {
-          setIsGameWon(true);
-          setIsSolutionsOpen(true);
-        }
-        if (loaded.guesses.length === 6 && !gameWasWon) {
-          setIsGameLost(true);
-          setIsSolutionsOpen(true);
-        }
-        updateGuessStatuses(loaded.guesses, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, null, null, null, null, null, practiceMode, gameIndex);
-        setGuesses(loaded.guesses);
-      }
-    }).catch((error) => {
-      console.error('Failed to load game data:', error);
-      // Still set loaded to true to show error state
-      setIsDataLoaded(true);
-    });
-  }, [practiceMode, urlPracticeGameIndex]);
-
-  useEffect(() => {
-    if (!isDataLoaded) return;
-    saveGameStateToLocalStorage(
-      { guesses, answer: flattenedTodaysTrip(practiceMode, effectivePracticeGameIndex) },
-      practiceMode,
-      effectivePracticeGameIndex
-    )
-  }, [guesses, isDataLoaded, practiceMode, effectivePracticeGameIndex])
-
-  const onChar = useCallback((routeId) => {
-    setCurrentGuess((prevGuess) => {
-      if (!isStatsOpen && !isGameWon && prevGuess.length < 3 && guesses.length < ATTEMPTS) {
-        if (!routesWithNoService(practiceMode).includes(routeId)) {
-          return [...prevGuess, routeId];
-        }
-      }
-      return prevGuess;
-    });
-  }, [isStatsOpen, isGameWon, guesses.length, practiceMode]);
-
-  const onDelete = useCallback(() => {
-    setCurrentGuess((prevGuess) => {
-      if (prevGuess.length > 0) {
-        return prevGuess.slice(0, prevGuess.length - 1);
-      }
-      return prevGuess;
-    });
-  }, []);
-
-  const onEnter = useCallback(() => {
-    setCurrentGuess((prevGuess) => {
-      const guessCount = guesses.length;
-      if (isGameWon || isGameLost || guessCount === 6) {
-        return prevGuess;
-      }
-
-      if (prevGuess.length !== 3) {
-        setIsNotEnoughRoutes(true);
-        setTimeout(() => {
-          setIsNotEnoughRoutes(false)
-        }, ALERT_TIME_MS);
-        return prevGuess;
-      }
-
-      if (!isValidGuess(prevGuess)) {
-        setIsGuessInvalid(true);
-        setTimeout(() => {
-          setIsGuessInvalid(false)
-        }, ALERT_TIME_MS);
-        return prevGuess;
-      }
-
-      const currentAnswer = flattenedTodaysTrip(practiceMode, effectivePracticeGameIndex);
-      const winningGuess = prevGuess.join('-') === currentAnswer;
-      const newGuesses = [...guesses, prevGuess];
-
-      updateGuessStatuses(
-        [prevGuess],
-        setCorrectRoutes,
-        setSimilarRoutes,
-        setPresentRoutes,
-        setAbsentRoutes,
-        setSimilarRoutesIndexes,
-        correctRoutes,
-        similarRoutes,
-        presentRoutes,
-        absentRoutes,
-        similarRoutesIndexes,
-        practiceMode,
-        effectivePracticeGameIndex,
-      );
-
-      setGuesses(newGuesses);
-
-      if (winningGuess) {
-        // Only update stats for regular games, not practice mode
-        if (!practiceMode) {
-          const updatedStats = addStatsForCompletedGame(stats, guessCount);
-          setStats(updatedStats);
-        }
-        setIsGameWon(true);
-        setIsSolutionsOpen(true);
-        return [];
-      }
-
-      if (newGuesses.length === 6) {
-        // Only update stats for regular games, not practice mode
-        if (!practiceMode) {
-          const updatedStats = addStatsForCompletedGame(stats, guessCount + 1);
-          setStats(updatedStats);
-        }
-        setIsGameLost(true);
-        setIsSolutionsOpen(true);
-        return [];
-      }
-
-      return [];
-    });
-  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex]);
-
+  // Modal handlers
   const onSolutionsClose = () => {
     setIsSolutionsOpen(false);
-  }
+  };
 
   const onStatsClose = () => {
     setIsStatsOpen(false);
-  }
+  };
 
   const onAboutClose = () => {
     setIsAboutOpen(false);
-  }
+  };
 
   const onSettingsClose = () => {
     setIsSettingsOpen(false);
-  }
+  };
 
   const handleStatsOpen = () => {
     if (isGameWon || isGameLost) {
@@ -315,49 +155,29 @@ const App = () => {
     } else {
       setIsStatsOpen(true);
     }
-  }
+  };
 
   const handleSettingsOpen = () => {
     setIsSettingsOpen(true);
-  }
+  };
 
   const handleAboutOpen = () => {
     setIsAboutOpen(true);
-  }
+  };
 
   const handlePracticeOpen = () => {
     setIsPracticeOpen(true);
-  }
+  };
 
   const handlePracticeClose = () => {
     setIsPracticeOpen(false);
-  }
+  };
 
-  const handlePracticeModeChange = (updatedSettings) => {
-    // Set isDataLoaded to false immediately to prevent accessing stale data
-    setIsDataLoaded(false);
-    
-    // If practice mode is being disabled, clear URL params and state
-    if (!updatedSettings.practice?.enabled) {
-      // Clear URL parameters from browser
-      const url = new URL(window.location.href);
-      url.searchParams.delete('practice');
-      url.searchParams.delete('game');
-      window.history.replaceState({}, '', url);
-      
-      // Clear URL state
-      setUrlPracticeMode(null);
-      setUrlPracticeGameIndex(null);
-    }
-    
-    setSettings(updatedSettings);
-  }
-
+  const isDarkMode = useDarkMode(practiceMode);
   const currentIsNight = isNight(practiceMode);
-  const isDarkMode = currentIsNight || (todayGameIndex() > Math.max(...NIGHT_GAMES) && settings.display.darkMode);
 
   // Don't render game until data is loaded and matches current practice mode
-  if (!isDataLoaded || !isGameDataLoadedForMode(practiceMode)) {
+  if (!isDataLoaded || !isGameDataLoaded) {
     return (
       <Dimmer active inverted>
         <Loader size="large">Loading game data...</Loader>
@@ -418,7 +238,6 @@ const App = () => {
             </Message>
           }
           <GameGrid
-            isDarkMode={isDarkMode}
             currentGuess={currentGuess}
             guesses={guesses}
             attempts={ATTEMPTS}
@@ -430,7 +249,6 @@ const App = () => {
         <Segment basic>
           <Keyboard
             noService={routesWithNoService(practiceMode)}
-            isDarkMode={isDarkMode}
             onChar={onChar}
             onDelete={onDelete}
             onEnter={onEnter}
@@ -441,11 +259,11 @@ const App = () => {
           />
         </Segment>
         <Suspense fallback={<div />}>
-          <AboutModal open={isAboutOpen} isDarkMode={isDarkMode} handleClose={onAboutClose} />
-          <SolutionModal open={isSolutionsOpen} isDarkMode={isDarkMode} isGameWon={isGameWon}  handleModalClose={onSolutionsClose} stats={stats} guesses={guesses} practiceMode={practiceMode} practiceGameIndex={effectivePracticeGameIndex} />
-          <StatsModal open={isStatsOpen} isDarkMode={isDarkMode} stats={stats} handleClose={onStatsClose} />
-          <SettingsModal open={isSettingsOpen} isDarkMode={isDarkMode} handleClose={onSettingsClose} onSettingsChange={setSettings} />
-          <PracticeModal open={isPracticeOpen} isDarkMode={isDarkMode} handleClose={handlePracticeClose} onPracticeModeChange={handlePracticeModeChange} />
+          <AboutModal open={isAboutOpen} handleClose={onAboutClose} />
+          <SolutionModal open={isSolutionsOpen} isGameWon={isGameWon} handleModalClose={onSolutionsClose} guesses={guesses} practiceMode={practiceMode} practiceGameIndex={effectivePracticeGameIndex} />
+          <StatsModal open={isStatsOpen} handleClose={onStatsClose} />
+          <SettingsModal open={isSettingsOpen} handleClose={onSettingsClose} />
+          <PracticeModal open={isPracticeOpen} handleClose={handlePracticeClose} onPracticeModeChange={handlePracticeModeChange} />
         </Suspense>
       </Segment>
     </div>
