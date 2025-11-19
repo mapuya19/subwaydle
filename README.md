@@ -1,10 +1,26 @@
 # Subwaydle
 
-A fork of the Wordle-inspired NYC Subway daily puzzle game. Modified for real transit enthusiasts. (Avoiding roundabout routes)
+A fork of the Wordle-inspired NYC Subway daily puzzle game. Modified for real transit enthusiasts by prioritizing direct, efficient transit paths.
 
 Contains some source code lifted from the [open-source clone](https://github.com/cwackerfuss/word-guessing-game) by Hannah Park. Subwaydle is a static JavaScript app, written using Create React App with React, Sass, Semantic UI React and Mapbox. A few Ruby scripts were written to generate JSON data files used by the app.
 
 See the original live at https://www.subwaydle.com
+
+## Upgrades vs. original
+
+This fork includes the following modifications compared to [the original repository](https://github.com/blahblahblah-/subwaydle):
+
+- ✅ **Route filtering logic**: Modified `scripts/possible_guesses_generator.rb` to filter out roundabout routes by:
+  - Checking if a direct single-route path exists between origin and destination
+  - Filtering routes with `travel_distance_factor` >= 1.4 (routes that are 40%+ longer than the direct distance)
+  - Applying minimum distance and progress factor thresholds to prioritize efficient paths
+- ✅ **Practice mode**: Added practice mode to support 4 game modes:
+  - Weekday, Weekend, Late Night, and Accessible route practice options
+  - URL-based puzzle sharing (`?practice=mode&game=index`)
+  - Share functionality that includes mode indicators
+- ✅ **Performance improvements**: Implemented lazy loading of game data:
+  - Only loads data files needed for the current game mode
+  - Reduces initial bundle size
 
 ## Running locally
 
