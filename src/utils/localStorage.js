@@ -1,11 +1,18 @@
-const gameStateKey = 'gameState';
-
-export const saveGameStateToLocalStorage = (gameState) => {
-  localStorage.setItem(gameStateKey, JSON.stringify(gameState))
+const getGameStateKey = (practiceMode = null, practiceGameIndex = null) => {
+  if (practiceMode && practiceGameIndex !== null) {
+    return `gameState_${practiceMode}_${practiceGameIndex}`;
+  }
+  return 'gameState';
 }
 
-export const loadGameStateFromLocalStorage = () => {
-  const state = localStorage.getItem(gameStateKey)
+export const saveGameStateToLocalStorage = (gameState, practiceMode = null, practiceGameIndex = null) => {
+  const key = getGameStateKey(practiceMode, practiceGameIndex);
+  localStorage.setItem(key, JSON.stringify(gameState))
+}
+
+export const loadGameStateFromLocalStorage = (practiceMode = null, practiceGameIndex = null) => {
+  const key = getGameStateKey(practiceMode, practiceGameIndex);
+  const state = localStorage.getItem(key)
   return state ? (JSON.parse(state)) : null
 }
 
@@ -20,8 +27,9 @@ export const loadStatsFromLocalStorage = () => {
   return stats ? (JSON.parse(stats)) : null
 }
 
-export const isNewToGame = () => {
-  return !(localStorage.getItem(gameStateKey) || localStorage.getItem(gameStatKey));
+export const isNewToGame = (practiceMode = null, practiceGameIndex = null) => {
+  const key = getGameStateKey(practiceMode, practiceGameIndex);
+  return !(localStorage.getItem(key) || localStorage.getItem(gameStatKey));
 }
 
 const gameSettingsKey = 'gameSettings'

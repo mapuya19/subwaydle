@@ -7,6 +7,7 @@ let gameDataCache = {
   routings: null,
   loading: false,
   loadPromise: null,
+  currentMode: null,
 };
 
 const GAME_EPOCH = new Date('January 29, 2022 00:00:00').valueOf();
@@ -29,7 +30,13 @@ export const todayGameIndex = () => {
   return Math.floor(daysBetween(GAME_EPOCH, now));
 };
 
-const getGameMode = () => {
+const getGameMode = (practiceMode = null) => {
+  // If practice mode is enabled, use that mode
+  if (practiceMode) {
+    return practiceMode;
+  }
+
+  // Otherwise, use automatic detection
   const today = new Date();
   const index = todayGameIndex();
   const isWeekend = [0, 6].includes(today.getDay());
@@ -42,8 +49,21 @@ const getGameMode = () => {
   return 'weekday';
 };
 
-export const loadGameData = async () => {
+export const loadGameData = async (practiceMode = null) => {
+  const mode = getGameMode(practiceMode);
+  
+  // If mode changed, set loading first, then clear cache and cancel any existing load
+  if (gameDataCache.currentMode !== mode) {
+    gameDataCache.loading = true;
+    gameDataCache.loadPromise = null;
+    gameDataCache.answers = null;
+    gameDataCache.solutions = null;
+    gameDataCache.routings = null;
+    gameDataCache.currentMode = mode;
+  }
+
   if (gameDataCache.answers && gameDataCache.solutions && gameDataCache.routings) {
+    gameDataCache.loading = false;
     return gameDataCache;
   }
 
@@ -52,7 +72,6 @@ export const loadGameData = async () => {
   }
 
   gameDataCache.loading = true;
-  const mode = getGameMode();
 
   gameDataCache.loadPromise = Promise.all([
     import(`../data/${mode}/answers.json`),
@@ -74,13 +93,34 @@ export const loadGameData = async () => {
 };
 
 export const getGameData = () => {
+  // Check if data is currently loading - this prevents access during mode transitions
+  if (gameDataCache.loading) {
+    throw new Error('Game data is currently loading. Please wait for loadGameData() to complete.');
+  }
+  
+  // Check if data exists
   if (!gameDataCache.answers || !gameDataCache.solutions || !gameDataCache.routings) {
     throw new Error('Game data not loaded. Call loadGameData() first.');
   }
+  
   return gameDataCache;
 };
 
 export const isGameDataLoaded = () => {
   return !!(gameDataCache.answers && gameDataCache.solutions && gameDataCache.routings);
+};
+
+export const isGameDataLoadedForMode = (practiceMode = null) => {
+  const expectedMode = getGameMode(practiceMode);
+  return isGameDataLoaded() && gameDataCache.currentMode === expectedMode && !gameDataCache.loading;
+};
+
+export const clearGameDataCache = () => {
+  gameDataCache.answers = null;
+  gameDataCache.solutions = null;
+  gameDataCache.routings = null;
+  gameDataCache.currentMode = null;
+  gameDataCache.loading = false;
+  gameDataCache.loadPromise = null;
 };
 

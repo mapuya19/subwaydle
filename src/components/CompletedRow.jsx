@@ -1,11 +1,12 @@
+import PropTypes from 'prop-types';
 import { Grid, Icon, Label, Segment } from 'semantic-ui-react';
 import TrainBullet from './TrainBullet';
 import { checkGuessStatuses } from '../utils/answerValidations';
 import { loadSettings } from '../utils/settings';
 
 const CompletedRow = (props) => {
-  const { guess } = props;
-  const classNameArrays = checkGuessStatuses(guess)
+  const { guess, practiceMode, practiceGameIndex } = props;
+  const classNameArrays = checkGuessStatuses(guess, practiceMode, practiceGameIndex)
   const settings = loadSettings();
 
   return (
@@ -37,5 +38,11 @@ const CompletedRow = (props) => {
     </Grid.Row>
   );
 }
+
+CompletedRow.propTypes = {
+  guess: PropTypes.arrayOf(PropTypes.string).isRequired,
+  practiceMode: PropTypes.string,
+  practiceGameIndex: PropTypes.number,
+};
 
 export default CompletedRow;

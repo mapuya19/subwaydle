@@ -1,0 +1,37 @@
+.practice-modal {
+  &.dark {
+    background-color: #1b1c1d;
+    color: #ffffff;
+
+    .header, .content {
+      background-color: #1b1c1d;
+      color: #ffffff;
+    }
+
+    .close.icon {
+      color: #ffffff;
+    }
+  }
+
+  .mode-description {
+    margin-left: 1.5em;
+    margin-top: 0.5em;
+    color: #666;
+    font-size: 0.9em;
+  }
+
+  &.dark .mode-description {
+    color: #aaa;
+  }
+
+  .exit-practice-section {
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid #ddd;
+  }
+
+  &.dark .exit-practice-section {
+    border-top-color: #444;
+  }
+}
+

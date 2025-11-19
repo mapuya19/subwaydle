@@ -3,6 +3,14 @@
     width: 10em;
   }
 
+  .share-btn-wrapper {
+    margin-top: 1.5em;
+
+    &.practice-mode {
+      margin-top: 2em;
+    }
+  }
+
   &.dark {
     background-color: #1b1c1d;
     color: #ffffff;

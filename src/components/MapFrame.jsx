@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
@@ -12,14 +13,14 @@ import './MapFrame.scss';
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
-const MapFrame = () => {
+const MapFrame = (props) => {
+  const { practiceMode = null, practiceGameIndex = null } = props;
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [lng, setLng] = useState(DEFAULT_LNG);
   const [lat, setLat] = useState(DEFAULT_LAT);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [shapes, setShapes] = useState(null);
-  const solution = todaysSolution();
 
   // Lazy load the large shapes.json file (996KB) to reduce initial bundle size
   useEffect(() => {
@@ -29,13 +30,14 @@ const MapFrame = () => {
   }, []);
 
   const stopsGeoJson = useCallback(() => {
+    const currentSolution = todaysSolution(practiceMode, practiceGameIndex);
     const stops = [
-      solution.origin,
-      solution.first_transfer_arrival,
-      solution.first_transfer_departure,
-      solution.second_transfer_arrival,
-      solution.second_transfer_departure,
-      solution.destination
+      currentSolution.origin,
+      currentSolution.first_transfer_arrival,
+      currentSolution.first_transfer_departure,
+      currentSolution.second_transfer_arrival,
+      currentSolution.second_transfer_departure,
+      currentSolution.destination
     ];
     return {
       "type": "FeatureCollection",
@@ -54,7 +56,7 @@ const MapFrame = () => {
         }
       })
     };
-  }, [solution]);
+  }, [practiceMode, practiceGameIndex]);
 
   const lineGeoJson = useCallback((line) => {
     if (!shapes) return null; // Wait for shapes to load
@@ -139,8 +141,8 @@ const MapFrame = () => {
       });
 
       map.current.resize();
-      const trip = todaysTrip();
-      const solution = todaysSolution();
+      const trip = todaysTrip(practiceMode, practiceGameIndex);
+      const solution = todaysSolution(practiceMode, practiceGameIndex);
       let coordinates = [];
       [
         {
@@ -226,7 +228,7 @@ const MapFrame = () => {
     };
 
     addMapLayers();
-  }, [shapes, lineGeoJson, stopsGeoJson]);
+  }, [shapes, lineGeoJson, stopsGeoJson, practiceMode, practiceGameIndex]);
 
   useEffect(() => {
     if (!map.current) return; // wait for map to initialize
@@ -251,5 +253,10 @@ const MapFrame = () => {
     </div>
   );
 }
+
+MapFrame.propTypes = {
+  practiceMode: PropTypes.string,
+  practiceGameIndex: PropTypes.number,
+};
 
 export default MapFrame;

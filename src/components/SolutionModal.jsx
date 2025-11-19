@@ -15,18 +15,18 @@ import { ALERT_TIME_MS } from '../utils/constants';
 import './SolutionModal.scss';
 
 const SolutionModal = (props) => {
-  const { open, handleModalClose, isDarkMode, isGameWon, stats, guesses } = props;
+  const { open, handleModalClose, isDarkMode, isGameWon, stats, guesses, practiceMode = null, practiceGameIndex = null } = props;
   const [isShareButtonShowCopied, setIsShareButtonShowCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalHidden, setIsModalHidden] = useState(false);
   const modal = useRef(null);
-  const trip = todaysTrip();
-  const solution = todaysSolution();
+  const trip = todaysTrip(practiceMode, practiceGameIndex);
+  const solution = todaysSolution(practiceMode, practiceGameIndex);
   const title = isGameWon ? "Yay! You completed today's trip!" : "Aww, looks like you got lost on the subway...";
   const isIos = /iP(ad|od|hone)/i.test(window.navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
 
   const handleShareClick = () => {
-    shareStatus(guesses, !isGameWon);
+    shareStatus(guesses, !isGameWon, practiceMode, practiceGameIndex);
     if (!navigator.share || !isIos) {
       setIsShareButtonShowCopied(true);
       setTimeout(() => {
@@ -66,28 +66,30 @@ const SolutionModal = (props) => {
       <Modal.Header>{ title }</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-        { open && <MapFrame /> }
+        { open && <MapFrame practiceMode={practiceMode} practiceGameIndex={practiceGameIndex} /> }
           <Header as='h3'>Today's Journey</Header>
-          { !isAccessible &&
+          { !isAccessible(practiceMode) &&
             <>
               <TrainBullet id={trip[0]} size='small' /> from { stations[solution.origin].name } to { stations[solution.first_transfer_arrival].name }<br />
               <TrainBullet id={trip[1]} size='small' /> from { stations[solution.first_transfer_departure].name } to { stations[solution.second_transfer_arrival].name }<br />
               <TrainBullet id={trip[2]} size='small' /> from { stations[solution.second_transfer_departure].name } to { stations[solution.destination].name }
             </>
           }
-          { isAccessible &&
+          { isAccessible(practiceMode) &&
             <>
               <TrainBullet id={trip[0]} size='small' /> from { stations[solution.origin].name } ♿️ to { stations[solution.first_transfer_arrival].name } ♿️<br />
               <TrainBullet id={trip[1]} size='small' /> from { stations[solution.first_transfer_departure].name } ♿️ to { stations[solution.second_transfer_arrival].name } ♿️<br />
               <TrainBullet id={trip[2]} size='small' /> from { stations[solution.second_transfer_departure].name } ♿️ to { stations[solution.destination].name } ♿️
             </>
           }
-          <Stats isDarkMode={isDarkMode} stats={stats} />
-          <Countdown />
-          <Button positive icon labelPosition='right' onClick={handleShareClick} className='share-btn'>
-            { isShareButtonShowCopied ? 'Copied' : 'Share' }
-            <Icon name={isShareButtonShowCopied ? 'check' : 'share alternate'} />
-          </Button>
+          { !practiceMode && <Stats isDarkMode={isDarkMode} stats={stats} /> }
+          { !practiceMode && <Countdown /> }
+          <div className={`share-btn-wrapper ${practiceMode ? 'practice-mode' : ''}`}>
+            <Button positive icon labelPosition='right' onClick={handleShareClick} className='share-btn'>
+              { isShareButtonShowCopied ? 'Copied' : 'Share' }
+              <Icon name={isShareButtonShowCopied ? 'check' : 'share alternate'} />
+            </Button>
+          </div>
         </Modal.Description>
       </Modal.Content>
     </Modal>
@@ -101,6 +103,8 @@ SolutionModal.propTypes = {
   isGameWon: PropTypes.bool.isRequired,
   stats: PropTypes.object.isRequired,
   guesses: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
+  practiceMode: PropTypes.string,
+  practiceGameIndex: PropTypes.number,
 };
 
 export default SolutionModal;

@@ -7,6 +7,10 @@ export const defaultSettings = {
   display: {
     showAnswerStatusBadges: false,
     darkMode:  window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+  },
+  practice: {
+    enabled: false,
+    mode: null, // 'weekday', 'weekend', 'night', or 'accessible'
   }
 }
 
