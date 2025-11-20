@@ -58,6 +58,8 @@ const generateEmojiGrid = (guesses, practiceMode = null, practiceGameIndex = nul
               return '🟢';
             case 'similar':
               return '🔵';
+            case 'sameColor':
+              return '🟠'; // Orange emoji for same-color hint
             case 'present':
               return '🟡';
             default:

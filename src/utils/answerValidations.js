@@ -1,4 +1,5 @@
 import transfers from './../data/transfers.json';
+import routes from './../data/routes.json';
 import { getGameData, todayGameIndex, NIGHT_GAMES } from './gameDataLoader';
 
 const ROUTES_WITH_NO_WEEKEND_SERVICE = ['B', 'W'];
@@ -159,6 +160,8 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
     const routesToAddToPresent = new Set();
     const routesToAddToAbsent = new Set();
 
+    const sameColorPositions = new Set(); // Track positions marked as 'sameColor'
+
     todaysTrip(practiceMode, practiceGameIndex).forEach((routeId, index) => {
       if (guess[index] === routeId) {
         // Route is correct - remove from all other arrays
@@ -190,14 +193,17 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
           } else if (!similarIndexes[guess[index]]) {
             similarIndexes[guess[index]] = [index];
           }
+        } else if (hasSameColor(guess[index], routeId)) {
+          // Mark position as sameColor - don't add to present/absent arrays
+          sameColorPositions.add(index);
         }
       }
     });
 
     remainingGuessPositions.forEach((index) => {
-      // Only add to 'present' if not already marked as 'similar' at this position
-      // 'similar' takes precedence because it provides more specific feedback
-      if (!similarPositions.has(index)) {
+      // Only add to 'present' if not already marked as 'similar' or 'sameColor' at this position
+      // 'similar' and 'sameColor' take precedence because they provide more specific feedback
+      if (!similarPositions.has(index) && !sameColorPositions.has(index)) {
         if (remainingRoutes.includes(guess[index])) {
           routesToAddToPresent.add(guess[index]);
         } else {
@@ -241,6 +247,22 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
   setSimilarRoutesIndexes(similarIndexes);
 }
 
+// Helper function to check if two routes share the same color
+// Excludes Staten Island Railroad and shuttles (GS, FS, H) as they're separate systems
+const hasSameColor = (route1, route2) => {
+  const EXCLUDED_ROUTES = ['SI', 'GS', 'FS', 'H'];
+  
+  // Don't apply same-color hint for excluded routes
+  if (EXCLUDED_ROUTES.includes(route1) || EXCLUDED_ROUTES.includes(route2)) {
+    return false;
+  }
+  
+  const r1 = routes[route1];
+  const r2 = routes[route2];
+  if (!r1 || !r2) return false;
+  return r1.color === r2.color;
+}
+
 export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex = null) => {
   const results = ['absent', 'absent', 'absent'];
   const remainingRoutes = [];
@@ -254,14 +276,16 @@ export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex
       remainingGuessPositions.push(index);
       if (isSimilarToAnswerTrain(guess[index], index, practiceMode, practiceGameIndex)) {
         results[index] = 'similar';
+      } else if (hasSameColor(guess[index], routeId)) {
+        // NEW: Mark as 'sameColor' if routes share the same color (deeper orange hint)
+        results[index] = 'sameColor';
       }
     }
   });
 
   remainingGuessPositions.forEach((index) => {
-    // Only set 'present' if not already marked as 'similar' or 'correct'
-    // 'similar' takes precedence because it provides more specific feedback
-    if (results[index] !== 'similar' && results[index] !== 'correct') {
+    // Priority: correct > similar > sameColor > present > absent
+    if (results[index] !== 'similar' && results[index] !== 'correct' && results[index] !== 'sameColor') {
       if (remainingRoutes.includes(guess[index])) {
         results[index] = 'present';
       }

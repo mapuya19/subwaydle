@@ -20,6 +20,10 @@
       background-color: #c9b458;
     }
 
+    &.sameColor {
+      background-color: #d97706;
+    }
+
     &.absent {
       background-color: #787c7e;
     }
@@ -41,6 +45,11 @@
 
     &.present {
       background-color: #b59f3b;
+      box-shadow: none;
+    }
+
+    &.sameColor {
+      background-color: #b45309;
       box-shadow: none;
     }
 

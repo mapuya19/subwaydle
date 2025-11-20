@@ -10,6 +10,9 @@ See the original live at https://www.subwaydle.com
 
 This fork includes the following modifications compared to [the original repository](https://github.com/blahblahblah-/subwaydle):
 
+- ✅ **Same-color hint**: Added a deeper orange hint when a guessed route shares the same color/transit line as the answer route:
+  - Ex.: A, C, E are all Eighth Avenue Line
+  - Helps players identify when they're on the right track but chose a different route on the same line
 - ✅ **Route filtering logic**: Modified `scripts/possible_guesses_generator.rb` to filter out roundabout routes by:
   - Checking if a direct single-route path exists between origin and destination
   - Filtering routes with `travel_distance_factor` >= 1.4 (routes that are 40%+ longer than the direct distance)

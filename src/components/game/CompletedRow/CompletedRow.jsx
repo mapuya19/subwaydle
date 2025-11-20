@@ -25,6 +25,8 @@ const CompletedRow = (props) => {
                           <Icon name="check" fitted /> :
                           classNameArrays[index] === 'similar' ?
                             <Icon name="sync alternate" fitted /> :
+                          classNameArrays[index] === 'sameColor' ?
+                            <Icon name="paint brush" fitted /> :
                             <Icon name="x" fitted />
                     }
                   </Label>

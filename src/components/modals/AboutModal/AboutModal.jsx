@@ -118,6 +118,34 @@ const AboutModal = (props) => {
             <Grid.Row>
               <Grid.Column>
                 <Segment placeholder>
+                  <TrainBullet id='2' size='medium' />
+                </Segment>
+              </Grid.Column>
+              <Grid.Column>
+                <Segment placeholder className='sameColor'>
+                  {settings.display.showAnswerStatusBadges &&
+                    <Label as='a' floating circular size='tiny'>
+                      <Icon name="tint" fitted />
+                    </Label>
+                  }
+                  <TrainBullet id='C' size='medium' />
+                </Segment>
+              </Grid.Column>
+              <Grid.Column>
+                <Segment placeholder>
+                  <TrainBullet id='L' size='medium' />
+                </Segment>
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
+        </Segment>
+        <div style={{ margin: '1em 0' }}>The <TrainBullet id='C' size='small' /> train is part of the same transit line as the answer train for that spot (e.g., A, C, E are all Eighth Avenue Line), but is not the correct route.</div>
+
+        <Segment basic>
+          <Grid centered columns={4} className={isDarkMode ? 'game-grid dark' : 'game-grid'}>
+            <Grid.Row>
+              <Grid.Column>
+                <Segment placeholder>
                   <TrainBullet id='F' size='medium' />
                 </Segment>
               </Grid.Column>
