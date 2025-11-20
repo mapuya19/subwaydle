@@ -164,11 +164,16 @@ patterns.each do |p, routes|
                           estimated_travel_distance = latlng[s1].distance_to(latlng[s2]) + latlng[s2].distance_to(latlng[t1]) + latlng[t1].distance_to(latlng[s3]) + latlng[s3].distance_to(latlng[t2]) + latlng[t2].distance_to(latlng[s4])
                           travel_distance_factor = estimated_travel_distance / as_the_crow_flies
                           minimum_distance_between_stations = [latlng[s1].distance_to(latlng[s2]), latlng[t1].distance_to(latlng[s3]), latlng[t2].distance_to(latlng[s4])].min
-                          minimum_distance_progress_factor = [
-                            (latlng[s1].distance_to(latlng[s4]) - latlng[s2].distance_to(latlng[s4])) / as_the_crow_flies,
-                            (latlng[t1].distance_to(latlng[s4]) - latlng[s3].distance_to(latlng[s4])) / as_the_crow_flies,
-                            (latlng[t2].distance_to(latlng[s4]) - latlng[s4].distance_to(latlng[s4])) / as_the_crow_flies,
-                          ].min
+
+                          progress_samples = []
+                          unless as_the_crow_flies.zero?
+                            [path1, path2, path3].each do |path|
+                              path.each_cons(2) do |from_station, to_station|
+                                progress_samples << (latlng[from_station].distance_to(latlng[s4]) - latlng[to_station].distance_to(latlng[s4])) / as_the_crow_flies
+                              end
+                            end
+                          end
+                          minimum_distance_progress_factor = progress_samples.min || 0
 
                           if !answers.include?(combo)
                             # puts "#{s1} #{r1} #{s2}-#{t1} #{r2} #{s3}-#{t2} #{r3} #{as_the_crow_flies} mi vs. #{estimated_travel_distance} mi (#{travel_distance_factor})"
@@ -243,7 +248,11 @@ patterns.each do |p, routes|
     possible_solutions.sort_by { |s| -s[:minimum_distance_progress_factor] }.find { |s| 
       max_factor = get_max_factor.call(s)
       s[:travel_distance_factor] < max_factor && s[:minimum_distance_between_stations] >= 0.50 
-    } || 
+    } ||
+    possible_solutions.find { |s|
+      max_factor = get_max_factor.call(s)
+      s[:travel_distance_factor] < max_factor
+    } ||
     possible_solutions.first
     [k.join("-"), picked]
   }.to_h
@@ -264,6 +273,8 @@ patterns.each do |p, routes|
   file.puts JSON.pretty_generate((answers.to_a - bad_solutions).shuffle)
   file.close
 
+  # Keep all solutions in solutions.json (including bad ones) so users can still guess them
+  # Bad solutions are just excluded from being daily puzzle answers
   file = File.open("../src/data/#{p}/solutions.json", "w")
   file.puts JSON.pretty_generate(picked_solutions)
   file.close
