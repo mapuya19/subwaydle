@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2022 Sunny Ng
+ * 
+ * This software is licensed under the MIT License.
+ * See LICENSE file for full license text.
+ */
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import 'mapbox-gl/dist/mapbox-gl.css';

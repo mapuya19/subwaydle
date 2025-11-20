@@ -165,6 +165,10 @@ const AboutModal = (props) => {
           and <a href="https://www.nytransitmuseum.org/">New York Transit Museum</a> Trivia Nights.</p>
 
         <p><a href="https://github.com/mapuya19/subwaydle" target="_blank" rel="noreferrer">Source code</a>.</p>
+
+        <Header as='h4'>License</Header>
+        <p>Copyright (c) 2022 Sunny Ng</p>
+        <p>This software is licensed under the MIT License. See the <a href="https://github.com/mapuya19/subwaydle/blob/main/LICENSE" target="_blank" rel="noreferrer">LICENSE</a> file for details.</p>
       </Modal.Content>
     </Modal>
   );

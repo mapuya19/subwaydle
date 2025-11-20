@@ -13,7 +13,7 @@ export const saveGameStateToLocalStorage = (gameState, practiceMode = null, prac
 export const loadGameStateFromLocalStorage = (practiceMode = null, practiceGameIndex = null) => {
   const key = getGameStateKey(practiceMode, practiceGameIndex);
   const state = localStorage.getItem(key)
-  return state ? (JSON.parse(state)) : null
+  return state && state.trim() ? (JSON.parse(state)) : null
 }
 
 const gameStatKey = 'gameStats'
@@ -24,7 +24,7 @@ export const saveStatsToLocalStorage = (gameStats) => {
 
 export const loadStatsFromLocalStorage = () => {
   const stats = localStorage.getItem(gameStatKey)
-  return stats ? (JSON.parse(stats)) : null
+  return stats && stats.trim() ? (JSON.parse(stats)) : null
 }
 
 export const isNewToGame = (practiceMode = null, practiceGameIndex = null) => {
@@ -40,5 +40,5 @@ export const saveSettingsToLocalStorage = (gameSettings) => {
 
 export const loadSettingsFromLocalStorage = () => {
   const settings = localStorage.getItem(gameSettingsKey)
-  return settings ? (JSON.parse(settings)) : null
+  return settings && settings.trim() ? (JSON.parse(settings)) : null
 }

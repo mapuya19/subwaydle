@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2022 Sunny Ng
+ * 
+ * This software is licensed under the MIT License.
+ * See LICENSE file for full license text.
+ */
+
 import { useState, lazy, Suspense } from 'react';
 import { Header, Segment, Icon, Message, Loader, Dimmer } from 'semantic-ui-react';
 
