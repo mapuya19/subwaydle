@@ -182,6 +182,17 @@ const App = () => {
     }
   }, [isDarkMode]);
 
+  // Update body/html background for dark mode
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark-mode');
+      document.body.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+      document.body.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
+
   // Don't render game until data is loaded and matches current practice mode
   if (!isDataLoaded || !isGameDataLoaded) {
     return (
