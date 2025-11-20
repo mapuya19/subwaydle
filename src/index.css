@@ -1,10 +1,25 @@
 /* Override Semantic UI's default Lato font to use Helvetica (NYC Subway's official font) */
 body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  /* Adjust baseline for Helvetica across all text */
+  transform: translateY(1px);
 }
 
 /* Ensure all Semantic UI components inherit the font */
 .ui {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+}
+
+/* Fix button text vertical alignment for Helvetica */
+.ui.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+/* Remove duplicate transform from button children since body already has it */
+.ui.button > * {
+  transform: translateY(0);
 }
 

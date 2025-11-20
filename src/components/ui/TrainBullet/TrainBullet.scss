@@ -1,33 +1,23 @@
-.route {
-  width: 2em;
-  height: 2em;
-  font-size: 2em;
-  line-height: 2em;
-  text-align: center;
-  font-weight: bold;
-  font-style: normal!important;
-  color: #fff;
-  margin-left: auto;
-  margin-right: auto;
-
-  &.medium {
-    height: 1.6em;
-    width: 1.6em;
-    font-size: 1.6em;
-    line-height: 1.6em;
-  }
-
-  &.small {
-    height: 1.5em;
+.train-bullet {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0;
+  border: none;
+  
+  &.train-bullet-small {
     width: 1.5em;
-    font-size: 1em;
-    line-height: 1.5em;
-    display: inline-block;
+    height: 1.5em;
   }
-}
-
-.bullet {
-  -webkit-border-radius: 999px;
-  -moz-border-radius: 999px;
-  border-radius: 999px;
+  
+  &.train-bullet-medium {
+    width: 2.5em;
+    height: 2.5em;
+  }
+  
+  // Default size (when no size prop or size is not small/medium)
+  &:not(.train-bullet-small):not(.train-bullet-medium) {
+    width: 2em;
+    height: 2em;
+  }
 }

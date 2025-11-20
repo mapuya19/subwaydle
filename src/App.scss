@@ -52,7 +52,16 @@
       flex-shrink: 0;
       gap: 0.5em;
       align-items: center;
-      padding-top: 0.2em; // Slight top padding to align with first line of text
+      
+      .icon {
+        margin: 0 !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+        max-width: 1.5em !important;
+        max-height: 1.5em !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+      }
     }
   }
 

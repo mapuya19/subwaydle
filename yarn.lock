@@ -9427,6 +9427,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mta-subway-bullets@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "mta-subway-bullets@npm:1.0.0"
+  checksum: b640f976175f0b0209058335e1c66aef4357a20f928b5c6ccdd0f0ce6e539d94916afaad1ff6b7c59624b844575b805798bc5f9d60b352a189d826a97c293a28
+  languageName: node
+  linkType: hard
+
 "multicast-dns-service-types@npm:^1.1.0":
   version: 1.1.0
   resolution: "multicast-dns-service-types@npm:1.1.0"
@@ -12627,6 +12634,7 @@ __metadata:
     "@types/express": ^4.17.21
     autoprefixer: ^10.4.16
     mapbox-gl: ^3.0.1
+    mta-subway-bullets: ^1.0.0
     postcss: ^8.4.32
     prop-types: ^15.8.1
     react: ^18.2.0

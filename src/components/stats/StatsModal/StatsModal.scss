@@ -12,6 +12,10 @@
 .stats-modal {
   animation: fadeInUp 0.3s ease-out;
 
+  .header {
+    font-family: Helvetica, Arial, sans-serif !important;
+  }
+
   &.dark {
     background-color: #1b1c1d;
     color: #ffffff;

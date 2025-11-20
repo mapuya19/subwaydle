@@ -45,6 +45,10 @@ Vercel will automatically detect this is a Create React App and build it correct
 
 Subway Route Symbols ® Metropolitan Transportation Authority. Used with permission.
 
+## Credits
+
+Train bullet SVGs are from [mta-subway-bullets](https://github.com/louh/mta-subway-bullets) by Lou Huang, licensed under CC0-1.0.
+
 Inspirations:
 * [Wordle](https://www.powerlanguage.co.uk/wordle/)
 * [Chengyu Wordle](https://cheeaun.github.io/chengyu-wordle/)

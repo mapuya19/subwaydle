@@ -12,6 +12,10 @@
 .solution-modal {
   animation: fadeInUp 0.3s ease-out;
 
+  .header {
+    font-family: Helvetica, Arial, sans-serif !important;
+  }
+
   .share-btn {
     width: 10em;
   }

@@ -125,7 +125,7 @@ const AboutModal = (props) => {
                 <Segment placeholder className='sameColor'>
                   {settings.display.showAnswerStatusBadges &&
                     <Label as='a' floating circular size='tiny'>
-                      <Icon name="tint" fitted />
+                      <Icon name="sitemap" fitted />
                     </Label>
                   }
                   <TrainBullet id='C' size='medium' />

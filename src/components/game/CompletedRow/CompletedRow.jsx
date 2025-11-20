@@ -63,7 +63,7 @@ const CompletedRow = (props) => {
                           classNameArrays[index] === 'similar' ?
                             <Icon name="sync alternate" fitted /> :
                           classNameArrays[index] === 'sameColor' ?
-                            <Icon name="paint brush" fitted /> :
+                            <Icon name="sitemap" fitted /> :
                             <Icon name="x" fitted />
                     }
                   </Label>

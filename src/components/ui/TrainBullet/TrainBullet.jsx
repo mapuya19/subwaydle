@@ -1,60 +1,37 @@
-import routes from '../../../data/routes.json';
 import './TrainBullet.scss';
 
-const classNames = (size) => {
-  if (size === 'small') {
-    return 'small route bullet';
-  } else if (size === 'medium') {
-    return 'medium route bullet';
-  }
-  return 'route bullet';
-}
-
-const style = (train, shortenedAlternateName, size) => {
-  const { color, text_color, name } = train;
-  let nameLength = name.length + (shortenedAlternateName?.length || 0);
-  let styleHash = {
-    backgroundColor: `${color}`
+// Map route IDs to SVG filenames in public folder
+const getSvgFileName = (id) => {
+  const svgMap = {
+    'GS': 's',
+    'FS': 'sf',
+    'SI': 'sir',
+    'H': 'sr',
   };
-
-  if (text_color) {
-    styleHash.color = `${text_color}`;
+  
+  if (svgMap[id]) {
+    return svgMap[id];
   }
-
-  if (size === 'small' && nameLength > 2) {
-    styleHash.letterSpacing = '-.06em';
+  
+  // Numbers stay as-is, letters convert to lowercase
+  if (/^\d+$/.test(id)) {
+    return id;
   }
-
-  return styleHash;
-}
-
-const innerStyle = (name, size, shortenedAlternateName) => {
-  let nameLength = name.length + (shortenedAlternateName?.length || 0);
-  if (size === 'small' && nameLength > 2) {
-    return { fontSize: '.9em' };
-  }
-}
+  
+  return id.toLowerCase();
+};
 
 const TrainBullet = (props) => {
-  const { id, size } = props;
-  const train = routes[id];
-  const { name } = train;
-
-  const alternateName = train.alternate_name
-  let shortenedAlternateName = alternateName && alternateName[0];
-  let match;
-  if (alternateName) {
-    match = alternateName.match(/^(?<number>[0-9]+)/);
-    if (match) {
-      shortenedAlternateName = match.groups.number;
-    }
-  }
-
+  const { id, size = 'medium' } = props;
+  const svgFileName = getSvgFileName(id);
+  const svgPath = `/train-bullets/${svgFileName}.svg`;
 
   return (
-    <div className={classNames(size)} style={style(train, shortenedAlternateName, size)}>
-      <div style={innerStyle(name, size, shortenedAlternateName)}>{name}<sup>{shortenedAlternateName}</sup></div>
-    </div>
+    <img 
+      src={svgPath} 
+      alt={id} 
+      className={`train-bullet train-bullet-${size}`}
+    />
   );
 }
 
