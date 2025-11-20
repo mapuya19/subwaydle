@@ -2,55 +2,68 @@ import { useState, useEffect } from 'react';
 import { saveSettings } from '../utils/settings';
 
 /**
+ * Read URL parameters synchronously on initialization
+ */
+const readUrlParams = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const practiceParam = urlParams.get('practice');
+  const gameParam = urlParams.get('game');
+  
+  if (practiceParam && gameParam !== null) {
+    const validModes = ['weekday', 'weekend', 'night', 'accessible'];
+    if (validModes.includes(practiceParam)) {
+      const gameIndex = parseInt(gameParam, 10);
+      if (!isNaN(gameIndex) && gameIndex >= 0) {
+        return { mode: practiceParam, gameIndex };
+      }
+    }
+  }
+  return { mode: null, gameIndex: null };
+};
+
+/**
  * Hook to manage practice mode state and URL parameters
  */
 export const usePracticeMode = (settings, setSettings) => {
-  const [urlPracticeMode, setUrlPracticeMode] = useState(null);
-  const [urlPracticeGameIndex, setUrlPracticeGameIndex] = useState(null);
+  // Read URL parameters synchronously during initialization (only runs once per useState)
+  const [urlPracticeMode, setUrlPracticeMode] = useState(() => readUrlParams().mode);
+  const [urlPracticeGameIndex, setUrlPracticeGameIndex] = useState(() => readUrlParams().gameIndex);
   const [practiceGameIndex, setPracticeGameIndex] = useState(null);
   const [previousPracticeMode, setPreviousPracticeMode] = useState(null);
 
-  // Read URL parameters on mount
+  // Update settings when URL params are present (runs after first render to avoid blocking)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const practiceParam = urlParams.get('practice');
-    const gameParam = urlParams.get('game');
-    
-    if (practiceParam && gameParam !== null) {
-      const validModes = ['weekday', 'weekend', 'night', 'accessible'];
-      if (validModes.includes(practiceParam)) {
-        const gameIndex = parseInt(gameParam, 10);
-        if (!isNaN(gameIndex) && gameIndex >= 0) {
-          setUrlPracticeMode(practiceParam);
-          setUrlPracticeGameIndex(gameIndex);
-          
-          // Update settings to enable practice mode from URL
-          setSettings((prevSettings) => {
-            const updatedSettings = {
-              ...prevSettings,
-              practice: {
-                ...prevSettings.practice,
-                mode: practiceParam,
-                enabled: true,
-              }
-            };
-            saveSettings(updatedSettings);
-            return updatedSettings;
-          });
+    if (urlPracticeMode && urlPracticeGameIndex !== null) {
+      // Update settings to enable practice mode from URL
+      setSettings((prevSettings) => {
+        // Only update if not already set to avoid unnecessary saves
+        if (prevSettings.practice?.mode !== urlPracticeMode || !prevSettings.practice?.enabled) {
+          const updatedSettings = {
+            ...prevSettings,
+            practice: {
+              ...prevSettings.practice,
+              mode: urlPracticeMode,
+              enabled: true,
+            }
+          };
+          saveSettings(updatedSettings);
+          return updatedSettings;
         }
-      }
+        return prevSettings;
+      });
     }
-  }, [setSettings]);
+  }, [setSettings, urlPracticeMode, urlPracticeGameIndex]);
 
-  // Use URL params if available and practice is enabled, otherwise use settings
-  const practiceMode = (settings.practice?.enabled && urlPracticeMode) 
+  // Use URL params if available (even if settings haven't been updated yet), otherwise use settings
+  const practiceMode = urlPracticeMode 
     ? urlPracticeMode 
     : (settings.practice?.enabled ? settings.practice?.mode : null);
   
   // Prefer practiceGameIndex (which is clamped) over urlPracticeGameIndex (which may be unclamped)
-  const effectivePracticeGameIndex = (settings.practice?.enabled && practiceGameIndex !== null)
+  // Also use urlPracticeGameIndex if URL params are present, even if settings aren't updated yet
+  const effectivePracticeGameIndex = (practiceGameIndex !== null)
     ? practiceGameIndex
-    : (settings.practice?.enabled && urlPracticeGameIndex !== null)
+    : (urlPracticeGameIndex !== null)
     ? urlPracticeGameIndex
     : null;
 
