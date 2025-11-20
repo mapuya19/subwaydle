@@ -147,17 +147,27 @@ export const isWinningGuess = (guess) => {
 export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode = null, practiceGameIndex = null) => {
   const correct = correctRoutes || [];
   let similar = similarRoutes || [];
-  const present = presentRoutes || [];
-  const absent = absentRoutes || [];
+  let present = presentRoutes || [];
+  let absent = absentRoutes || [];
   const similarIndexes = similarRoutesIndexes || {};
 
   guesses.forEach((guess) => {
     const remainingRoutes = [];
     const remainingGuessPositions = [];
+    const similarPositions = new Set(); // Track positions marked as 'similar'
+    const routesToAddToSimilar = new Set();
+    const routesToAddToPresent = new Set();
+    const routesToAddToAbsent = new Set();
 
     todaysTrip(practiceMode, practiceGameIndex).forEach((routeId, index) => {
       if (guess[index] === routeId) {
-        correct.push(routeId);
+        // Route is correct - remove from all other arrays
+        if (!correct.includes(routeId)) {
+          correct.push(routeId);
+        }
+        similar = similar.filter(t => t !== routeId);
+        present = present.filter(t => t !== routeId);
+        absent = absent.filter(t => t !== routeId);
         Object.keys(similarIndexes).forEach((r) => {
           const s = similarIndexes[r];
           if (s.includes(index)) {
@@ -173,7 +183,8 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
         remainingGuessPositions.push(index);
 
         if (isSimilarToAnswerTrain(guess[index], index, practiceMode, practiceGameIndex)) {
-          similar.push(guess[index]);
+          routesToAddToSimilar.add(guess[index]);
+          similarPositions.add(index);
           if (similarIndexes[guess[index]] && !similarIndexes[guess[index]].includes(index)) {
             similarIndexes[guess[index]].push(index);
           } else if (!similarIndexes[guess[index]]) {
@@ -184,10 +195,41 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
     });
 
     remainingGuessPositions.forEach((index) => {
-      if (remainingRoutes.includes(guess[index])) {
-        present.push(guess[index]);
-      } else {
-        absent.push(guess[index]);
+      // Only add to 'present' if not already marked as 'similar' at this position
+      // 'similar' takes precedence because it provides more specific feedback
+      if (!similarPositions.has(index)) {
+        if (remainingRoutes.includes(guess[index])) {
+          routesToAddToPresent.add(guess[index]);
+        } else {
+          routesToAddToAbsent.add(guess[index]);
+        }
+      }
+    });
+
+    // Add routes to appropriate arrays and remove from lower-priority arrays
+    routesToAddToSimilar.forEach((routeId) => {
+      if (!similar.includes(routeId)) {
+        similar.push(routeId);
+      }
+      // Remove from present and absent since similar takes precedence
+      present = present.filter(t => t !== routeId);
+      absent = absent.filter(t => t !== routeId);
+    });
+
+    routesToAddToPresent.forEach((routeId) => {
+      if (!present.includes(routeId)) {
+        present.push(routeId);
+      }
+      // Remove from absent since present takes precedence
+      absent = absent.filter(t => t !== routeId);
+    });
+
+    routesToAddToAbsent.forEach((routeId) => {
+      // Only add to absent if not already in correct, similar, or present
+      if (!correct.includes(routeId) && !similar.includes(routeId) && !present.includes(routeId)) {
+        if (!absent.includes(routeId)) {
+          absent.push(routeId);
+        }
       }
     });
   });
@@ -217,8 +259,12 @@ export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex
   });
 
   remainingGuessPositions.forEach((index) => {
-    if (remainingRoutes.includes(guess[index])) {
-      results[index] = 'present';
+    // Only set 'present' if not already marked as 'similar' or 'correct'
+    // 'similar' takes precedence because it provides more specific feedback
+    if (results[index] !== 'similar' && results[index] !== 'correct') {
+      if (remainingRoutes.includes(guess[index])) {
+        results[index] = 'present';
+      }
     }
   });
 
