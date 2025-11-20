@@ -28,6 +28,17 @@
     .close.icon {
       color: #ffffff;
     }
+
+    .ui.radio {
+      label {
+        color: #ffffff !important;
+      }
+    }
+
+    .actions {
+      background-color: #1b1c1d !important;
+      border-top: 1px solid #444 !important;
+    }
   }
 
   .ui.grid > .row {

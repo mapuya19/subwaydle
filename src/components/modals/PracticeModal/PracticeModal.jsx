@@ -48,8 +48,7 @@ const PracticeModal = (props) => {
     <Modal closeIcon open={open} onClose={handleClose} size='small' className={isDarkMode ? 'practice-modal dark' : 'practice-modal'}>
       <Modal.Header>Practice Mode</Modal.Header>
       <Modal.Content scrolling>
-        <Header>Select a practice mode:</Header>
-        <p>Choose a mode to practice with different routing patterns.</p>
+        <Header>Try out different routing patterns:</Header>
         <Grid>
           <Grid.Row>
             <Grid.Column>

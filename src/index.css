@@ -1,3 +1,16 @@
+/* Ensure full viewport height and prevent scrolling */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Override Semantic UI's default Lato font to use Helvetica (NYC Subway's official font) */
 body {
   font-family: Helvetica, Arial, sans-serif !important;

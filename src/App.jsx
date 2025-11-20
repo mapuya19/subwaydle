@@ -5,7 +5,7 @@
  * See LICENSE file for full license text.
  */
 
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { Header, Segment, Icon, Message, Loader, Dimmer } from 'semantic-ui-react';
 
 import { GameGrid, Keyboard } from './components/game';
@@ -173,6 +173,14 @@ const App = () => {
 
   const isDarkMode = useDarkMode(practiceMode);
   const currentIsNight = isNight(practiceMode);
+
+  // Update theme-color meta tag for iOS browser bars
+  useEffect(() => {
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', isDarkMode ? '#1b1c1d' : '#ffffff');
+    }
+  }, [isDarkMode]);
 
   // Don't render game until data is loaded and matches current practice mode
   if (!isDataLoaded || !isGameDataLoaded) {
