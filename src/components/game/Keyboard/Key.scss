@@ -1,5 +1,26 @@
+@keyframes keyBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 .keyboard .stretched.column.key {
   padding: 0!important;
+
+  button {
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    
+    &.pressed:not(:disabled) {
+      transform: scale(0.95);
+    }
+  }
+
+  button.bounce {
+    animation: keyBounce 0.2s ease-in-out;
+  }
 
   .correct {
     background-color: #6aaa64;

@@ -242,6 +242,7 @@ const App = () => {
             inPlay={!isGameWon && !isGameLost && guesses.length < 6}
             practiceMode={practiceMode}
             practiceGameIndex={effectivePracticeGameIndex}
+            shouldShake={isNotEnoughRoutes || isGuessInvalid}
           />
         </Segment>
         <Segment basic>
