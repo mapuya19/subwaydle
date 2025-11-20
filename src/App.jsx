@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Header, Segment, Icon, Message, Popup, Loader, Dimmer } from 'semantic-ui-react';
+import { Header, Segment, Icon, Message, Loader, Dimmer } from 'semantic-ui-react';
 
 import { GameGrid, Keyboard } from './components/game';
 
@@ -193,30 +193,21 @@ const App = () => {
     <div className={"outer-app-wrapper " + (isDarkMode ? 'dark' : '')}>
       <Segment basic className='app-wrapper' inverted={isDarkMode}>
         <Segment clearing basic className='header-wrapper' inverted={isDarkMode}>
-          <Header floated='left'>
-            {practiceMode && <span style={{ fontSize: '0.7em', fontWeight: 'normal' }}>Practice: </span>}
-            {currentIsNight && "Late Night "}
-            {(!currentIsNight && currentIsWeekend) && "Weekend "}Subwaydle Remastered
-            {currentIsAccessible && " ♿️"}
-            {
-               currentIsNight &&
-               <Popup
-               position='bottom center'
-                 trigger={
-                   <sup>[?]</sup>
-                 }
-               >
-               <Popup.Content>
-                 <p>Subwaydle Remastered now available in Dark Mode!</p>
-                 <p>Try solving this weekend's Subwaydle Remastered with late night routing patterns.</p>
-               </Popup.Content>
-               </Popup>
-             }
+          <Header>
+            {practiceMode && <span className="practice-label">Practice:</span>}
+            <span className="header-title">
+              {currentIsNight && "Late Night "}
+              {(!currentIsNight && currentIsWeekend) && "Weekend "}
+              Subwaydle Remastered
+              {currentIsAccessible && " ♿️"}
+            </span>
           </Header>
-          <Icon className='float-right' inverted={isDarkMode} name='cog' size='large' link onClick={handleSettingsOpen} />
-          <Icon className='float-right' inverted={isDarkMode} name='chart bar' size='large' link onClick={handleStatsOpen} />
-          <Icon className='float-right' inverted={isDarkMode} name='graduation cap' size='large' link onClick={handlePracticeOpen} />
-          <Icon className='float-right' inverted={isDarkMode} name='question circle outline' size='large' link onClick={handleAboutOpen} />
+          <div className='header-icons'>
+            <Icon inverted={isDarkMode} name='question circle outline' size='large' link onClick={handleAboutOpen} />
+            <Icon inverted={isDarkMode} name='graduation cap' size='large' link onClick={handlePracticeOpen} />
+            <Icon inverted={isDarkMode} name='chart bar' size='large' link onClick={handleStatsOpen} />
+            <Icon inverted={isDarkMode} name='cog' size='large' link onClick={handleSettingsOpen} />
+          </div>
         </Segment>
         { !currentIsAccessible &&
           <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} to {stations[solution.destination].name} using 2 transfers.</Header>

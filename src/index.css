@@ -1,0 +1,10 @@
+/* Override Semantic UI's default Lato font to use Helvetica (NYC Subway's official font) */
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+}
+
+/* Ensure all Semantic UI components inherit the font */
+.ui {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+}
+

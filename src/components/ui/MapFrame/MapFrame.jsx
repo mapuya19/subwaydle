@@ -62,14 +62,50 @@ const MapFrame = (props) => {
     if (!shapes) return null; // Wait for shapes to load
     
     const route = routes[line.route];
+    if (!route) return null; // Route doesn't exist
+    
     let shape;
     const beginCoord = [stations[line.begin].longitude, stations[line.begin].latitude];
     const endCoord = [stations[line.end].longitude, stations[line.end].latitude];
     let coordinates = [];
 
+    // Helper function to find the closest coordinate index using tolerance
+    const findClosestCoordIndex = (targetCoord, shapeArray) => {
+      const TOLERANCE = 0.0001; // Approximately 11 meters
+      let closestIndex = -1;
+      let minDistance = Infinity;
+      
+      for (let i = 0; i < shapeArray.length; i++) {
+        const coord = shapeArray[i];
+        const distance = Math.sqrt(
+          Math.pow(coord[0] - targetCoord[0], 2) + 
+          Math.pow(coord[1] - targetCoord[1], 2)
+        );
+        
+        // First try exact match
+        if (distance < TOLERANCE) {
+          if (distance < 0.00001) {
+            return i; // Exact match found
+          }
+          // Track closest match within tolerance
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = i;
+          }
+        }
+      }
+      
+      return closestIndex;
+    };
+
     if (line.route === 'A') {
       const lineA1 = shapes['A1'];
-      if (lineA1.some((coord) => coord[0] === beginCoord[0] && coord[1] === beginCoord[1]) && lineA1.some((coord) => coord[0] === endCoord[0] && coord[1] === endCoord[1])) {
+      if (!lineA1) return null;
+      
+      const beginInA1 = findClosestCoordIndex(beginCoord, lineA1) !== -1;
+      const endInA1 = findClosestCoordIndex(endCoord, lineA1) !== -1;
+      
+      if (beginInA1 && endInA1) {
         shape = shapes['A1'];
       } else {
         shape = shapes['A2'];
@@ -78,13 +114,23 @@ const MapFrame = (props) => {
       shape = shapes[line.route];
     }
 
-    const beginIndex = shape.findIndex((coord) => coord[0] === beginCoord[0] && coord[1] === beginCoord[1]);
-    const endIndex = shape.findIndex((coord) => coord[0] === endCoord[0] && coord[1] === endCoord[1]);
+    if (!shape) return null; // Shape doesn't exist
+
+    const beginIndex = findClosestCoordIndex(beginCoord, shape);
+    const endIndex = findClosestCoordIndex(endCoord, shape);
+
+    if (beginIndex === -1 || endIndex === -1) {
+      return null; // Couldn't find coordinates
+    }
 
     if (beginIndex < endIndex) {
       coordinates = shape.slice(beginIndex, endIndex + 1);
     } else {
       coordinates = shape.slice(endIndex, beginIndex + 1);
+    }
+
+    if (coordinates.length === 0) {
+      return null; // No coordinates found
     }
 
     return {
@@ -195,7 +241,7 @@ const MapFrame = (props) => {
         "layout": {
           "text-field": ['get', 'name'],
           "text-size": 12,
-          "text-font": ['Lato Bold', "Open Sans Bold","Arial Unicode MS Bold"],
+          "text-font": ['Arial Bold', 'Arial Unicode MS Bold', 'Open Sans Bold'],
           "text-optional": false,
           "text-justify": "auto",
           'text-allow-overlap': false,
