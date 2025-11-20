@@ -10,29 +10,12 @@ See the original live at https://www.subwaydle.com
 
 This fork includes the following modifications compared to [the original repository](https://github.com/blahblahblah-/subwaydle):
 
-- ✅ **Same-color hint**: Added a deeper orange hint when a guessed route shares the same color/transit line as the answer route:
-  - Ex.: A, C, E are all Eighth Avenue Line
-  - Helps players identify when they're on the right track but chose a different route on the same line
-- ✅ **Route filtering logic**: Modified `scripts/possible_guesses_generator.rb` to filter out roundabout routes by:
-  - Checking if a direct single-route path exists between origin and destination
-  - Filtering routes with `travel_distance_factor` >= 1.4 (routes that are 40%+ longer than the direct distance)
-  - Applying minimum distance and progress factor thresholds to prioritize efficient paths
-- ✅ **Practice mode**: Added practice mode to support 4 game modes:
-  - Weekday, Weekend, Late Night, and Accessible route practice options
-  - URL-based puzzle sharing (`?practice=mode&game=index`)
-  - Share functionality that includes mode indicators
-- ✅ **Performance improvements**: Implemented lazy loading of game data:
-  - Only loads data files needed for the current game mode
-  - Reduces initial bundle size
-  - Initial page load is now 5x faster
-- ✅ **Component organization**: Reorganized codebase into logical directory structure:
-  - Separated game, modal, stats, and UI components into dedicated folders
-  - Extracted contexts and hooks for better code organization
-  - Improved maintainability and code clarity
-- ✅ **Code quality**: Enhanced code reliability and developer experience:
-  - Added PropTypes validation to all components
-  - Added ErrorBoundary component for graceful error handling
-  - Fixed build warnings and updated dependencies
+- ✅ **Same-color hint**: Orange hint when a guessed route shares the same transit line as the answer (e.g., A, C, E are all Eighth Avenue Line)
+- ✅ **Route filtering logic**: Filters out roundabout routes, prioritizing direct paths with travel distance factors < 1.4x the direct distance
+- ✅ **Practice mode**: Four game modes (Weekday, Weekend, Late Night, Accessible) with URL-based puzzle sharing
+- ✅ **Performance improvements**: Lazy loading of game data reduces initial bundle size and improves page load by 5x
+- ✅ **Component organization**: Reorganized codebase into logical directories (game, modal, stats, UI) with extracted contexts and hooks
+- ✅ **Code quality**: Added PropTypes validation, ErrorBoundary component, and fixed build warnings
 
 ## Running locally
 
