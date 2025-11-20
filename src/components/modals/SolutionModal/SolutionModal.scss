@@ -1,20 +1,7 @@
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+@import '../_shared';
 
 .solution-modal {
-  animation: fadeInUp 0.3s ease-out;
-
-  .header {
-    font-family: Helvetica, Arial, sans-serif !important;
-  }
+  @extend %modal-base;
 
   .share-btn {
     width: 10em;
@@ -25,20 +12,6 @@
 
     &.practice-mode {
       margin-top: 2em;
-    }
-  }
-
-  &.dark {
-    background-color: #1b1c1d;
-    color: #ffffff;
-
-    .header, .content {
-      background-color: #1b1c1d;
-      color: #ffffff;
-    }
-
-    .close.icon {
-      color: #ffffff;
     }
   }
 }

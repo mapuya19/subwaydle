@@ -1,0 +1,35 @@
+// Shared modal styles
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Common modal base styles
+%modal-base {
+  animation: fadeInUp 0.3s ease-out;
+
+  .header {
+    font-family: Helvetica, Arial, sans-serif !important;
+  }
+
+  &.dark {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+
+    .header, .content {
+      background-color: var(--color-bg-dark);
+      color: var(--color-text-light);
+    }
+
+    .close.icon {
+      color: var(--color-text-light);
+    }
+  }
+}
+

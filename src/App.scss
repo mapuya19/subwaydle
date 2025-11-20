@@ -4,7 +4,7 @@
   position: absolute;
 
   &.dark {
-    background-color: #1b1c1d;
+    background-color: var(--color-bg-dark);
   }
 }
 

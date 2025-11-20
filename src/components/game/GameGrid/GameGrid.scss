@@ -96,7 +96,7 @@
   }
 
   &.dark .ui.placeholder.segment {
-    background-color: #1b1c1d;
+    background-color: var(--color-bg-dark);
     box-shadow: 0 0 0 2px #3a3a3c inset;
 
     &.correct {

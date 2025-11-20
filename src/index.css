@@ -1,15 +1,34 @@
-/* Ensure full viewport height and prevent scrolling */
-html, body {
+/* CSS Variables for colors */
+:root {
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #1b1c1d;
+  --color-text-light: #ffffff;
+}
+
+/* Ensure full viewport height and prevent scrolling by default */
+html {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #ffffff;
+  background-color: var(--color-bg-light);
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--color-bg-light);
+  /* Override Semantic UI's default Lato font to use Helvetica (NYC Subway's official font) */
+  font-family: Helvetica, Arial, sans-serif !important;
+  /* Adjust baseline for Helvetica across all text */
+  transform: translateY(1px);
 }
 
 /* Dark mode background */
 html.dark-mode, body.dark-mode {
-  background-color: #1b1c1d;
+  background-color: var(--color-bg-dark);
 }
 
 #root {
@@ -17,11 +36,11 @@ html.dark-mode, body.dark-mode {
   overflow: hidden;
 }
 
-/* Override Semantic UI's default Lato font to use Helvetica (NYC Subway's official font) */
-body {
-  font-family: Helvetica, Arial, sans-serif !important;
-  /* Adjust baseline for Helvetica across all text */
-  transform: translateY(1px);
+/* Enable scrolling on mobile devices when content overflows */
+@media (max-width: 768px) {
+  html, body, #root {
+    overflow-y: auto;
+  }
 }
 
 /* Ensure all Semantic UI components inherit the font */
