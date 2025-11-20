@@ -251,12 +251,13 @@ patterns.each do |p, routes|
   # Filter out solutions that don't meet quality thresholds
   # Cross-borough routes: filter if travel_distance_factor >= 2.0
   # Same-borough routes: filter if travel_distance_factor >= 1.4
+  # Reject solutions with significant backtracking (minimum_distance_progress_factor < -0.025)
   bad_solutions = picked_solutions.select { |k, v| 
     orig_borough = station_boroughs[v[:origin]]
     dest_borough = station_boroughs[v[:destination]]
     is_cross_borough = orig_borough && dest_borough && orig_borough != dest_borough
     max_factor = is_cross_borough ? 2.0 : 1.4
-    v[:travel_distance_factor] >= max_factor
+    v[:travel_distance_factor] >= max_factor || v[:minimum_distance_progress_factor] < -0.025
   }.map { |k, _| k}.map { |k| k.split("-") }
 
   file = File.open("../src/data/#{p}/answers.json", "w")
