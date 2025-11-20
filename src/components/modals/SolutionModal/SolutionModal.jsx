@@ -13,7 +13,7 @@ import { useDarkMode } from '../../../contexts';
 import { useStats } from '../../../contexts/StatsContext';
 
 import stations from "../../../data/stations.json";
-import { ALERT_TIME_MS } from '../../../utils/constants';
+import { ALERT_TIME_MS, isIosDevice } from '../../../utils/constants';
 import './SolutionModal.scss';
 
 const SolutionModal = (props) => {
@@ -27,7 +27,7 @@ const SolutionModal = (props) => {
   const trip = todaysTrip(practiceMode, practiceGameIndex);
   const solution = todaysSolution(practiceMode, practiceGameIndex);
   const title = isGameWon ? "Yay! You completed today's trip!" : "Aww, looks like you got lost on the subway...";
-  const isIos = /iP(ad|od|hone)/i.test(window.navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+  const isIos = isIosDevice();
 
   const handleShareClick = () => {
     shareStatus(guesses, !isGameWon, practiceMode, practiceGameIndex);

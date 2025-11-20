@@ -12,7 +12,7 @@ let gameDataCache = {
 
 const GAME_EPOCH = new Date('January 29, 2022 00:00:00').valueOf();
 export const NIGHT_GAMES = [350, 351];
-const ACCESSIBLE_GAME = 793;
+export const ACCESSIBLE_GAME = 793;
 
 const treatAsUTC = (date) => {
   const result = new Date(date);

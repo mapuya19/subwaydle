@@ -1,4 +1,5 @@
 import { todayGameIndex, checkGuessStatuses, isNight, isWeekend, isAccessible } from './answerValidations';
+import { isIosDevice } from './constants';
 
 export const shareStatus = (guesses, lost, practiceMode = null, practiceGameIndex = null) => {
   let title = `Subwaydle Remastered ${todayGameIndex()}`;
@@ -25,7 +26,7 @@ export const shareStatus = (guesses, lost, practiceMode = null, practiceGameInde
     // Regular daily puzzle
     if (isNight()) {
       title = `Subwaydle Remastered ${todayGameIndex()} (Late Night Edition)`;
-    } else if (isWeekend) {
+    } else if (isWeekend()) {
       title = `Subwaydle Remastered ${todayGameIndex()} (Weekend Edition)`;
     } else if (isAccessible()) {
       title = `Subwaydle Remastered ${todayGameIndex()} ♿️`
@@ -40,7 +41,7 @@ export const shareStatus = (guesses, lost, practiceMode = null, practiceGameInde
     ? `${text}\n\nPlay this puzzle: ${shareUrl}`
     : text;
   
-  const isIos = /iP(ad|od|hone)/i.test(window.navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+  const isIos = isIosDevice();
   if (navigator.share && isIos) {
     navigator.share({text: shareText});
   } else {

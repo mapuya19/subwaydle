@@ -10,28 +10,14 @@ const SettingsModal = (props) => {
   const { settings, setSettings } = useSettings();
   const isDarkMode = useDarkMode();
 
-  const showAnswerStatusBadgesToggleChanged = (event, value) => {
-    const updatedSettings = {
+  const handleToggleChange = (settingKey) => (event, value) => {
+    setSettings({
       ...settings,
       display: {
         ...settings.display,
-        showAnswerStatusBadges: value.checked,
+        [settingKey]: value.checked,
       }
-    };
-
-    setSettings(updatedSettings);
-  }
-
-  const darkModeToggleChanged = (event, value) => {
-    const updatedSettings = {
-      ...settings,
-      display: {
-        ...settings.display,
-        darkMode: value.checked,
-      }
-    };
-
-    setSettings(updatedSettings);
+    });
   }
 
   return (
@@ -46,15 +32,14 @@ const SettingsModal = (props) => {
               <Popup inverted={isDarkMode} content='Having trouble seeing the difference in the colors? Turn on status badges!'
                 position="bottom center"
                 trigger={
-                  <Icon inverted={isDarkMode} name='question circle outline' size='large' link
-                    onHover={showAnswerStatusBadgesHoverDetail} />
+                  <Icon inverted={isDarkMode} name='question circle outline' size='large' link />
                 }
               />
             </Grid.Column>
             <Grid.Column className='two wide'>
               <Checkbox toggle className='float-right'
                 name='showAnswerStatusBadgesToggle'
-                onChange={showAnswerStatusBadgesToggleChanged}
+                onChange={handleToggleChange('showAnswerStatusBadges')}
                 checked={settings.display.showAnswerStatusBadges} />
             </Grid.Column>
           </Grid.Row>
@@ -65,10 +50,10 @@ const SettingsModal = (props) => {
                 Dark mode
               </Grid.Column>
               <Grid.Column className='two wide'>
-                <Checkbox toggle className='float-right'
-                  name='darkModeToggle'
-                  onChange={darkModeToggleChanged}
-                  checked={settings.display.darkMode} />
+              <Checkbox toggle className='float-right'
+                name='darkModeToggle'
+                onChange={handleToggleChange('darkMode')}
+                checked={settings.display.darkMode} />
               </Grid.Column>
             </Grid.Row>
           }
@@ -76,10 +61,6 @@ const SettingsModal = (props) => {
       </Modal.Content>
     </Modal>
   );
-}
-
-const showAnswerStatusBadgesHoverDetail = () => {
-
 }
 
 SettingsModal.propTypes = {

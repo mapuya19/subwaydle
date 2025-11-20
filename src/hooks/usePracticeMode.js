@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { saveSettings } from '../utils/settings';
+import { VALID_PRACTICE_MODES } from '../utils/constants';
 
 /**
  * Read URL parameters synchronously on initialization
@@ -10,8 +11,7 @@ const readUrlParams = () => {
   const gameParam = urlParams.get('game');
   
   if (practiceParam && gameParam !== null) {
-    const validModes = ['weekday', 'weekend', 'night', 'accessible'];
-    if (validModes.includes(practiceParam)) {
+    if (VALID_PRACTICE_MODES.includes(practiceParam)) {
       const gameIndex = parseInt(gameParam, 10);
       if (!isNaN(gameIndex) && gameIndex >= 0) {
         return { mode: practiceParam, gameIndex };

@@ -13,6 +13,7 @@ import { GameGrid, Keyboard } from './components/game';
 import {
   isAccessible,
   isNight,
+  isWeekend,
   routesWithNoService,
   todaysSolution,
 } from './utils/answerValidations';
@@ -140,20 +141,26 @@ const App = () => {
   });
 
   // Modal handlers
-  const onSolutionsClose = () => {
-    setIsSolutionsOpen(false);
+  const handleModalClose = (modal) => {
+    const setters = {
+      solutions: setIsSolutionsOpen,
+      stats: setIsStatsOpen,
+      about: setIsAboutOpen,
+      settings: setIsSettingsOpen,
+      practice: setIsPracticeOpen,
+    };
+    setters[modal]?.(false);
   };
 
-  const onStatsClose = () => {
-    setIsStatsOpen(false);
-  };
-
-  const onAboutClose = () => {
-    setIsAboutOpen(false);
-  };
-
-  const onSettingsClose = () => {
-    setIsSettingsOpen(false);
+  const handleModalOpen = (modal) => {
+    const setters = {
+      solutions: setIsSolutionsOpen,
+      stats: setIsStatsOpen,
+      about: setIsAboutOpen,
+      settings: setIsSettingsOpen,
+      practice: setIsPracticeOpen,
+    };
+    setters[modal]?.(true);
   };
 
   const handleStatsOpen = () => {
@@ -162,22 +169,6 @@ const App = () => {
     } else {
       setIsStatsOpen(true);
     }
-  };
-
-  const handleSettingsOpen = () => {
-    setIsSettingsOpen(true);
-  };
-
-  const handleAboutOpen = () => {
-    setIsAboutOpen(true);
-  };
-
-  const handlePracticeOpen = () => {
-    setIsPracticeOpen(true);
-  };
-
-  const handlePracticeClose = () => {
-    setIsPracticeOpen(false);
   };
 
   const isDarkMode = useDarkMode(practiceMode);
@@ -194,7 +185,7 @@ const App = () => {
 
   const solution = todaysSolution(practiceMode, effectivePracticeGameIndex);
   const currentIsAccessible = isAccessible(practiceMode);
-  const currentIsWeekend = practiceMode === 'weekend' || (!practiceMode && [0, 6].includes(new Date().getDay()));
+  const currentIsWeekend = isWeekend(practiceMode);
 
   return (
     <div className={"outer-app-wrapper " + (isDarkMode ? 'dark' : '')}>
@@ -210,10 +201,10 @@ const App = () => {
             </span>
           </Header>
           <div className='header-icons'>
-            <Icon inverted={isDarkMode} name='question circle outline' size='large' link onClick={handleAboutOpen} />
-            <Icon inverted={isDarkMode} name='graduation cap' size='large' link onClick={handlePracticeOpen} />
+            <Icon inverted={isDarkMode} name='question circle outline' size='large' link onClick={() => handleModalOpen('about')} />
+            <Icon inverted={isDarkMode} name='graduation cap' size='large' link onClick={() => handleModalOpen('practice')} />
             <Icon inverted={isDarkMode} name='chart bar' size='large' link onClick={handleStatsOpen} />
-            <Icon inverted={isDarkMode} name='cog' size='large' link onClick={handleSettingsOpen} />
+            <Icon inverted={isDarkMode} name='cog' size='large' link onClick={() => handleModalOpen('settings')} />
           </div>
         </Segment>
         { !currentIsAccessible &&
@@ -258,11 +249,11 @@ const App = () => {
           />
         </Segment>
         <Suspense fallback={<div />}>
-          <AboutModal open={isAboutOpen} handleClose={onAboutClose} />
-          <SolutionModal open={isSolutionsOpen} isGameWon={isGameWon} handleModalClose={onSolutionsClose} guesses={guesses} practiceMode={practiceMode} practiceGameIndex={effectivePracticeGameIndex} />
-          <StatsModal open={isStatsOpen} handleClose={onStatsClose} />
-          <SettingsModal open={isSettingsOpen} handleClose={onSettingsClose} />
-          <PracticeModal open={isPracticeOpen} handleClose={handlePracticeClose} onPracticeModeChange={handlePracticeModeChange} />
+          <AboutModal open={isAboutOpen} handleClose={() => handleModalClose('about')} />
+          <SolutionModal open={isSolutionsOpen} isGameWon={isGameWon} handleModalClose={() => handleModalClose('solutions')} guesses={guesses} practiceMode={practiceMode} practiceGameIndex={effectivePracticeGameIndex} />
+          <StatsModal open={isStatsOpen} handleClose={() => handleModalClose('stats')} />
+          <SettingsModal open={isSettingsOpen} handleClose={() => handleModalClose('settings')} />
+          <PracticeModal open={isPracticeOpen} handleClose={() => handleModalClose('practice')} onPracticeModeChange={handlePracticeModeChange} />
         </Suspense>
       </Segment>
     </div>

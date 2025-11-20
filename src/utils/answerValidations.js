@@ -1,13 +1,10 @@
 import transfers from './../data/transfers.json';
 import routes from './../data/routes.json';
-import { getGameData, todayGameIndex, NIGHT_GAMES } from './gameDataLoader';
+import { getGameData, todayGameIndex, NIGHT_GAMES, ACCESSIBLE_GAME } from './gameDataLoader';
 
 const ROUTES_WITH_NO_WEEKEND_SERVICE = ['B', 'W'];
 const ROUTES_WITH_NO_NIGHT_SERVICE = ['B', 'C', 'W', 'GS'];
-const ACCESSIBLE_GAME = 793;
 const DEKALB_AV_FLATBUSH_STOP = "R30";
-
-const today = new Date();
 
 const isSimilarToAnswerTrain = (guess, index, practiceMode = null, practiceGameIndex = null) => {
   let begin;
@@ -72,8 +69,6 @@ const retrieveSubrouting = (train, routings, begin, end) => {
   return routings[trainLookup].slice(endIndex, beginIndex + 1);
 }
 
-export const isWeekend = [0, 6].includes(today.getDay());
-
 // Re-export from gameDataLoader for backwards compatibility
 export { todayGameIndex, NIGHT_GAMES };
 
@@ -88,11 +83,12 @@ const getGameModeFlags = (practiceMode = null) => {
   }
 
   // Otherwise, use automatic detection
+  const today = new Date();
   const index = todayGameIndex();
   return {
     isNight: NIGHT_GAMES.includes(index),
     isAccessible: index === ACCESSIBLE_GAME,
-    isWeekend: isWeekend,
+    isWeekend: [0, 6].includes(today.getDay()),
   };
 };
 
@@ -115,6 +111,7 @@ export const isValidGuess = (guess) => {
 
 export const isNight = (practiceMode = null) => getGameModeFlags(practiceMode).isNight;
 export const isAccessible = (practiceMode = null) => getGameModeFlags(practiceMode).isAccessible;
+export const isWeekend = (practiceMode = null) => getGameModeFlags(practiceMode).isWeekend;
 
 const todaysRoutings = () => {
   const { routings } = getGameData();
@@ -155,12 +152,11 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
   guesses.forEach((guess) => {
     const remainingRoutes = [];
     const remainingGuessPositions = [];
-    const similarPositions = new Set(); // Track positions marked as 'similar'
+    const similarPositions = new Set();
     const routesToAddToSimilar = new Set();
     const routesToAddToPresent = new Set();
     const routesToAddToAbsent = new Set();
-
-    const sameColorPositions = new Set(); // Track positions marked as 'sameColor'
+    const sameColorPositions = new Set();
 
     todaysTrip(practiceMode, practiceGameIndex).forEach((routeId, index) => {
       if (guess[index] === routeId) {
@@ -171,6 +167,7 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
         similar = similar.filter(t => t !== routeId);
         present = present.filter(t => t !== routeId);
         absent = absent.filter(t => t !== routeId);
+        // Clean up similar indexes for this position
         Object.keys(similarIndexes).forEach((r) => {
           const s = similarIndexes[r];
           if (s.includes(index)) {
@@ -180,7 +177,7 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
               similar = similar.filter(t => t !== r);
             }
           }
-        })
+        });
       } else {
         remainingRoutes.push(routeId);
         remainingGuessPositions.push(index);
@@ -194,15 +191,13 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
             similarIndexes[guess[index]] = [index];
           }
         } else if (hasSameColor(guess[index], routeId)) {
-          // Mark position as sameColor - don't add to present/absent arrays
           sameColorPositions.add(index);
         }
       }
     });
 
+    // Process remaining positions (not correct, similar, or sameColor)
     remainingGuessPositions.forEach((index) => {
-      // Only add to 'present' if not already marked as 'similar' or 'sameColor' at this position
-      // 'similar' and 'sameColor' take precedence because they provide more specific feedback
       if (!similarPositions.has(index) && !sameColorPositions.has(index)) {
         if (remainingRoutes.includes(guess[index])) {
           routesToAddToPresent.add(guess[index]);
@@ -212,12 +207,11 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
       }
     });
 
-    // Add routes to appropriate arrays and remove from lower-priority arrays
+    // Apply route updates in priority order: similar > present > absent
     routesToAddToSimilar.forEach((routeId) => {
       if (!similar.includes(routeId)) {
         similar.push(routeId);
       }
-      // Remove from present and absent since similar takes precedence
       present = present.filter(t => t !== routeId);
       absent = absent.filter(t => t !== routeId);
     });
@@ -226,12 +220,10 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
       if (!present.includes(routeId)) {
         present.push(routeId);
       }
-      // Remove from absent since present takes precedence
       absent = absent.filter(t => t !== routeId);
     });
 
     routesToAddToAbsent.forEach((routeId) => {
-      // Only add to absent if not already in correct, similar, or present
       if (!correct.includes(routeId) && !similar.includes(routeId) && !present.includes(routeId)) {
         if (!absent.includes(routeId)) {
           absent.push(routeId);
