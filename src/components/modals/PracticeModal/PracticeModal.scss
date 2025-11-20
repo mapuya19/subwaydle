@@ -13,15 +13,9 @@
     }
   }
 
-  .mode-description {
-    margin-left: 1.5em;
-    margin-top: 0.5em;
-    color: #666;
-    font-size: 0.9em;
-  }
-
-  &.dark .mode-description {
-    color: #aaa;
+  .ui.grid > .row {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
   }
 
   .exit-practice-section {

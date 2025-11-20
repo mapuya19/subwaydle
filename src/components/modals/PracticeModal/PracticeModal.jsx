@@ -49,42 +49,39 @@ const PracticeModal = (props) => {
       <Modal.Header>Practice Mode</Modal.Header>
       <Modal.Content scrolling>
         <Header>Select a practice mode:</Header>
-        <p>Choose a mode to practice with different routing patterns. Each mode is exclusive.</p>
+        <p>Choose a mode to practice with different routing patterns.</p>
         <Grid>
           <Grid.Row>
             <Grid.Column>
               <Radio
-                label='Weekday'
+                label='Weekday 📅'
                 name='practiceMode'
                 value='weekday'
                 checked={selectedMode === 'weekday'}
                 onChange={() => handleModeChange('weekday')}
               />
-              <p className='mode-description'>Practice with weekday routing patterns</p>
             </Grid.Column>
           </Grid.Row>
           <Grid.Row>
             <Grid.Column>
               <Radio
-                label='Weekend'
+                label='Weekend 🎉'
                 name='practiceMode'
                 value='weekend'
                 checked={selectedMode === 'weekend'}
                 onChange={() => handleModeChange('weekend')}
               />
-              <p className='mode-description'>Practice with weekend routing patterns</p>
             </Grid.Column>
           </Grid.Row>
           <Grid.Row>
             <Grid.Column>
               <Radio
-                label='Late Night'
+                label='Late Night 🌙'
                 name='practiceMode'
                 value='night'
                 checked={selectedMode === 'night'}
                 onChange={() => handleModeChange('night')}
               />
-              <p className='mode-description'>Practice with late night routing patterns</p>
             </Grid.Column>
           </Grid.Row>
           <Grid.Row>
@@ -96,7 +93,6 @@ const PracticeModal = (props) => {
                 checked={selectedMode === 'accessible'}
                 onChange={() => handleModeChange('accessible')}
               />
-              <p className='mode-description'>Practice with accessible routing patterns</p>
             </Grid.Column>
           </Grid.Row>
         </Grid>
