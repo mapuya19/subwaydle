@@ -2,7 +2,8 @@ import { todayGameIndex, checkGuessStatuses, isNight, isWeekend, isAccessible } 
 import { isIosDevice } from './constants';
 
 export const shareStatus = (guesses, lost, practiceMode = null, practiceGameIndex = null) => {
-  let title = `Subwaydle Remastered ${todayGameIndex()}`;
+  let baseTitle = 'Subwaydle Remastered';
+  let gameIndex = todayGameIndex();
   let shareUrl = window.location.origin + window.location.pathname;
 
   if (practiceMode && practiceGameIndex !== null) {
@@ -17,23 +18,25 @@ export const shareStatus = (guesses, lost, practiceMode = null, practiceGameInde
       accessible: 'Accessible'
     };
     const modeLabel = modeLabels[practiceMode] || practiceMode;
-    title = `Subwaydle Remastered Practice (${modeLabel} #${practiceGameIndex})`;
+    baseTitle = `Subwaydle Remastered Practice (${modeLabel})`;
+    gameIndex = practiceGameIndex;
     
     if (practiceMode === 'accessible') {
-      title += ' ♿️';
+      baseTitle += ' ♿️';
     }
   } else {
     // Regular daily puzzle
     if (isNight()) {
-      title = `Subwaydle Remastered ${todayGameIndex()} (Late Night Edition)`;
+      baseTitle = `Subwaydle Remastered (Late Night Edition)`;
     } else if (isWeekend()) {
-      title = `Subwaydle Remastered ${todayGameIndex()} (Weekend Edition)`;
+      baseTitle = `Subwaydle Remastered (Weekend Edition)`;
     } else if (isAccessible()) {
-      title = `Subwaydle Remastered ${todayGameIndex()} ♿️`
+      baseTitle = `Subwaydle Remastered ♿️`;
     }
   }
   
-  const text = `${title} ${lost ? 'X' : guesses.length}/6\n\n` +
+  const score = lost ? 'X' : guesses.length;
+  const text = `${baseTitle}\n#${gameIndex} ${score}/6\n\n` +
     generateEmojiGrid(guesses, practiceMode, practiceGameIndex);
   
   // Add URL to share text if in practice mode
