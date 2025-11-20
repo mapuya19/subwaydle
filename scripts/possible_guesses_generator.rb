@@ -30,6 +30,78 @@ csv.each do |row|
   end
 end
 
+# Helper function to check if a path segment moves forward (prevents invalid backtracking)
+# This validates that paths are making progress toward the destination, allowing for:
+# - Short backward segments (1-2 stations) necessary for transfers
+# - Longer backward segments that still move away from origin and toward destination
+# - Curved routes where backward movement on one route is necessary to continue in a different direction
+def path_moves_forward?(path, route, route_indices, origin: nil, destination: nil, latlng: nil, previous_paths: [])
+  return true if path.length < 2
+  
+  # Get route indices for stations in the path
+  indices = path.map { |station| route_indices[route][station] }.compact
+  return false if indices.length < 2
+  
+  # Check if indices are consistently increasing (forward) or decreasing (backward)
+  increasing = indices.each_cons(2).all? { |a, b| b > a }
+  decreasing = indices.each_cons(2).all? { |a, b| b < a }
+  
+  # If moving forward on route, always allow
+  return true if increasing
+  
+  # If moving backward on route, check if it's acceptable
+  if decreasing
+    # Allow very short backward segments (1-2 stations) - likely necessary for transfers
+    return true if path.length <= 2
+    
+    # For longer backward segments, check if overall direction makes sense
+    if origin && latlng && path.length > 2
+      start_station = path.first
+      end_station = path.last
+      
+      # Check if we're moving away from origin (good - means we're progressing)
+      dist_from_origin_start = latlng[origin].distance_to(latlng[start_station])
+      dist_from_origin_end = latlng[origin].distance_to(latlng[end_station])
+      moving_away_from_origin = dist_from_origin_end > dist_from_origin_start
+      
+      # If we have destination, also check if moving toward it
+      if destination
+        dist_to_dest_start = latlng[start_station].distance_to(latlng[destination])
+        dist_to_dest_end = latlng[end_station].distance_to(latlng[destination])
+        moving_toward_dest = dist_to_dest_end < dist_to_dest_start
+        
+        # Only allow backward segment if it moves away from origin AND toward destination
+        return moving_away_from_origin && moving_toward_dest
+      elsif previous_paths.any? && previous_paths.length > 0
+        # Use previous path segments to better handle curved routes
+        # Calculate the "journey endpoint" - the last station we've visited so far
+        journey_endpoint = previous_paths.last.last
+        
+        # For curved routes, a backward segment on the route might still be valid if:
+        # 1. It moves away from origin (overall progress)
+        # 2. It moves away from where we've been (journey endpoint) - indicates a curve
+        dist_from_journey_end_start = latlng[journey_endpoint].distance_to(latlng[start_station])
+        dist_from_journey_end_end = latlng[journey_endpoint].distance_to(latlng[end_station])
+        moving_away_from_journey_end = dist_from_journey_end_end > dist_from_journey_end_start
+        
+        # Allow backward segment if moving away from origin AND away from journey endpoint
+        # This handles curved routes where going backward on one route is necessary
+        # to continue the journey in a different direction
+        return moving_away_from_origin && moving_away_from_journey_end
+      end
+      
+      # Without destination or previous paths, only allow if moving away from origin
+      return moving_away_from_origin
+    end
+    
+    # If we don't have origin/latlng info, reject longer backward segments
+    return false
+  end
+  
+  # Mixed direction (not consistently increasing or decreasing) - reject
+  false
+end
+
 patterns.each do |p, routes|
   answers = Set.new
   solutions = {}
@@ -48,13 +120,17 @@ patterns.each do |p, routes|
   end
 
   # Load route data: for each route, get the ordered list of stations it serves
+  # Also create route_indices map for O(1) lookups (needed for path_moves_forward?)
+  route_indices = {}
   routes.each do |r|
     routings[r] = []
+    route_indices[r] = {}
     route_csv = File.read("data/#{p}/stops/#{r}.csv")
     csv = CSV.parse(route_csv)
-    csv.each do |row|
+    csv.each_with_index do |row, idx|
       station_stops[row[0]] << r
       routings[r] << row[0]
+      route_indices[r][row[0]] = idx
     end
   end
 
@@ -74,6 +150,8 @@ patterns.each do |p, routes|
         subrouting1.each_with_index do |s2, i1n|
           next if i1n == 0  # Skip if we haven't moved from origin
           path1 = subrouting1[0..i1n]  # Path from origin to first transfer point
+          # Check if path1 moves forward (prevents invalid backtracking)
+          next unless path_moves_forward?(path1, r1, route_indices, origin: s1, latlng: latlng, previous_paths: [])
           next_station1 = subrouting1[i1n + 1]
 
           # Get all possible transfer stations (including the station itself)
@@ -103,6 +181,9 @@ patterns.each do |p, routes|
                   path2 = subrouting2[0..i2n]
                   # Don't overlap paths
                   next if (path2[1..-1] & path1).any?
+                  # Check if path2 moves forward (prevents invalid backtracking)
+                  # Use path1 as previous_paths to handle curved routes
+                  next unless path_moves_forward?(path2, r2, route_indices, origin: s1, latlng: latlng, previous_paths: [path1])
                   next_station2 = subrouting2[i2n + 1]
                   transfers2 = [transfers[s3]].flatten.compact
                   transfers2 << s3
@@ -132,6 +213,9 @@ patterns.each do |p, routes|
                           path3 = subrouting3[0..i3n]
                           # Don't overlap paths
                           next if (path3[1..-1] & (path1 + path2)).any?
+                          # Check if path3 moves forward (prevents invalid backtracking)
+                          # Use path1 and path2 as previous_paths to handle curved routes
+                          next unless path_moves_forward?(path3, r3, route_indices, origin: s1, destination: s4, latlng: latlng, previous_paths: [path1, path2])
 
                           # Check if there's a direct route from origin to destination that's shorter
                           # If so, mark this solution as invalid (factor = 100)
