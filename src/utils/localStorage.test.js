@@ -8,9 +8,10 @@ import {
   isNewToGame,
 } from './localStorage';
 
-// Mock localStorage
+// Mock localStorage with shared store
+let store = {};
+
 const createLocalStorageMock = () => {
-  let store = {};
   return {
     getItem: jest.fn((key) => {
       return store[key] || null;
@@ -39,18 +40,36 @@ beforeAll(() => {
 
 describe('localStorage utilities', () => {
   beforeEach(() => {
-    localStorageMock.clear();
+    // Clear the store and reset mock call history, but keep implementations
+    store = {};
     jest.clearAllMocks();
+    // Re-implement mocks to use the cleared store
+    localStorageMock.getItem.mockImplementation((key) => store[key] || null);
+    localStorageMock.setItem.mockImplementation((key, value) => {
+      store[key] = value.toString();
+    });
+    localStorageMock.removeItem.mockImplementation((key) => {
+      delete store[key];
+    });
+    localStorageMock.clear.mockImplementation(() => {
+      store = {};
+    });
   });
 
   describe('saveGameStateToLocalStorage', () => {
     test('saves game state to localStorage', () => {
       const gameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
-      saveGameStateToLocalStorage(gameState);
+      const result = saveGameStateToLocalStorage(gameState);
+      expect(result).toBe(true);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'gameState',
         JSON.stringify(gameState)
       );
+    });
+
+    test('returns false when gameState is null', () => {
+      const result = saveGameStateToLocalStorage(null);
+      expect(result).toBe(false);
     });
   });
 
@@ -71,11 +90,17 @@ describe('localStorage utilities', () => {
   describe('saveStatsToLocalStorage', () => {
     test('saves stats to localStorage', () => {
       const stats = { gamesPlayed: 5, gamesWon: 3 };
-      saveStatsToLocalStorage(stats);
+      const result = saveStatsToLocalStorage(stats);
+      expect(result).toBe(true);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'gameStats',
         JSON.stringify(stats)
       );
+    });
+
+    test('returns false when stats is null', () => {
+      const result = saveStatsToLocalStorage(null);
+      expect(result).toBe(false);
     });
   });
 
@@ -96,11 +121,17 @@ describe('localStorage utilities', () => {
   describe('saveSettingsToLocalStorage', () => {
     test('saves settings to localStorage', () => {
       const settings = { display: { darkMode: true } };
-      saveSettingsToLocalStorage(settings);
+      const result = saveSettingsToLocalStorage(settings);
+      expect(result).toBe(true);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'gameSettings',
         JSON.stringify(settings)
       );
+    });
+
+    test('returns false when settings is null', () => {
+      const result = saveSettingsToLocalStorage(null);
+      expect(result).toBe(false);
     });
   });
 
