@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Radio, Button } from 'semantic-ui-react';
 import { useSettings, useDarkMode } from '../../../contexts';
@@ -10,6 +10,13 @@ const PracticeModal = (props) => {
   const { settings, setSettings } = useSettings();
   const isDarkMode = useDarkMode();
   const [selectedMode, setSelectedMode] = useState(settings.practice?.mode || null);
+
+  // Sync selectedMode with current practice mode when modal opens
+  useEffect(() => {
+    if (open) {
+      setSelectedMode(settings.practice?.mode || null);
+    }
+  }, [open, settings.practice?.mode]);
 
   const handleModeChange = (mode) => {
     setSelectedMode(mode);
@@ -26,7 +33,8 @@ const PracticeModal = (props) => {
     };
 
     setSettings(updatedSettings);
-    onPracticeModeChange(updatedSettings);
+    // Always force a new game when clicking "Start Practice"
+    onPracticeModeChange(updatedSettings, true);
     handleClose();
   }
 
@@ -95,17 +103,13 @@ const PracticeModal = (props) => {
             </Grid.Column>
           </Grid.Row>
         </Grid>
-        {settings.practice?.enabled && (
-          <div className='exit-practice-section'>
-            <Header as='h4'>Currently in Practice Mode</Header>
-            <Button negative onClick={handleExitPractice}>
-              Exit Practice Mode
-            </Button>
-          </div>
-        )}
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={handleClose}>Cancel</Button>
+        {settings.practice?.enabled && (
+          <Button negative onClick={handleExitPractice}>
+            Exit Practice Mode
+          </Button>
+        )}
         <Button positive disabled={!selectedMode} onClick={handleStartPractice}>
           Start Practice
         </Button>

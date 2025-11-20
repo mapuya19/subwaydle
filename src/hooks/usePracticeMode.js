@@ -67,7 +67,7 @@ export const usePracticeMode = (settings, setSettings) => {
     ? urlPracticeGameIndex
     : null;
 
-  const handlePracticeModeChange = (updatedSettings) => {
+  const handlePracticeModeChange = (updatedSettings, forceNewGame = false) => {
     // If practice mode is being disabled, clear URL params and state
     if (!updatedSettings.practice?.enabled) {
       // Clear URL parameters from browser
@@ -79,6 +79,23 @@ export const usePracticeMode = (settings, setSettings) => {
       // Clear URL state
       setUrlPracticeMode(null);
       setUrlPracticeGameIndex(null);
+      // Clear practice game index
+      setPracticeGameIndex(null);
+    } else if (updatedSettings.practice?.enabled && updatedSettings.practice?.mode) {
+      // If switching to a different practice mode OR forcing a new game, clear URL params to generate a new random game
+      const modeChanged = updatedSettings.practice.mode !== practiceMode;
+      if (modeChanged || forceNewGame) {
+        // Clear URL parameters from browser to allow new random game generation
+        const url = new URL(window.location.href);
+        url.searchParams.delete('practice');
+        url.searchParams.delete('game');
+        window.history.replaceState({}, '', url);
+        
+        // Clear URL state and practice game index so a new random game index will be generated
+        setUrlPracticeMode(null);
+        setUrlPracticeGameIndex(null);
+        setPracticeGameIndex(null);
+      }
     }
     
     setSettings(updatedSettings);

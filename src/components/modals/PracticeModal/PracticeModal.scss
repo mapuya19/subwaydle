@@ -45,15 +45,28 @@
     padding-top: 0.5em;
     padding-bottom: 0.5em;
   }
+}
 
-  .exit-practice-section {
-    margin-top: 2em;
-    padding-top: 1em;
-    border-top: 1px solid #ddd;
+// Target the modal actions - Semantic UI renders modals at root level
+.ui.modal.practice-modal > .actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.5em !important;
+
+  .ui.button.negative {
+    margin-right: auto !important;
   }
+}
 
-  &.dark .exit-practice-section {
-    border-top-color: #444;
+.ui.modal.practice-modal.dark > .actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.5em !important;
+
+  .ui.button.negative {
+    margin-right: auto !important;
   }
 }
 
