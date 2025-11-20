@@ -1,8 +1,8 @@
-# Subwaydle-Remastered
+# Subwaydle Remastered
 
 A fork of the Wordle-inspired NYC Subway daily puzzle game. Modified for real transit enthusiasts by prioritizing direct, efficient transit paths.
 
-Contains some source code lifted from the [open-source clone](https://github.com/cwackerfuss/word-guessing-game) by Hannah Park. Subwaydle is a static JavaScript app, written using Create React App with React, Sass, Semantic UI React and Mapbox. A few Ruby scripts were written to generate JSON data files used by the app.
+Contains some source code lifted from the [open-source clone](https://github.com/cwackerfuss/word-guessing-game) by Hannah Park. Subwaydle Remastered is a static JavaScript app, written using Create React App with React, Sass, Semantic UI React and Mapbox. A few Ruby scripts were written to generate JSON data files used by the app.
 
 See the original live at https://www.subwaydle.com
 

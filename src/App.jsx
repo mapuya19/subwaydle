@@ -196,7 +196,7 @@ const App = () => {
           <Header floated='left'>
             {practiceMode && <span style={{ fontSize: '0.7em', fontWeight: 'normal' }}>Practice: </span>}
             {currentIsNight && "Late Night "}
-            {(!currentIsNight && currentIsWeekend) && "Weekend "}Subwaydle
+            {(!currentIsNight && currentIsWeekend) && "Weekend "}Subwaydle Remastered
             {currentIsAccessible && " ♿️"}
             {
                currentIsNight &&
@@ -207,8 +207,8 @@ const App = () => {
                  }
                >
                <Popup.Content>
-                 <p>Subwaydle now available in Dark Mode!</p>
-                 <p>Try solving this weekend's Subwaydle with late night routing patterns.</p>
+                 <p>Subwaydle Remastered now available in Dark Mode!</p>
+                 <p>Try solving this weekend's Subwaydle Remastered with late night routing patterns.</p>
                </Popup.Content>
                </Popup>
              }

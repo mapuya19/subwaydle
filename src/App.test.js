@@ -48,9 +48,9 @@ describe('App', () => {
     jest.clearAllMocks();
   });
 
-  test('renders Subwaydle header', () => {
+  test('renders Subwaydle Remastered header', () => {
     render(<App />);
-    const headerElement = screen.getByText(/Subwaydle/i);
+    const headerElement = screen.getByText(/Subwaydle Remastered/i);
     expect(headerElement).toBeInTheDocument();
   });
 

@@ -1,7 +1,7 @@
 import { todayGameIndex, checkGuessStatuses, isNight, isWeekend, isAccessible } from './answerValidations';
 
 export const shareStatus = (guesses, lost, practiceMode = null, practiceGameIndex = null) => {
-  let title = `Subwaydle ${todayGameIndex()}`;
+  let title = `Subwaydle Remastered ${todayGameIndex()}`;
   let shareUrl = window.location.origin + window.location.pathname;
 
   if (practiceMode && practiceGameIndex !== null) {
@@ -16,7 +16,7 @@ export const shareStatus = (guesses, lost, practiceMode = null, practiceGameInde
       accessible: 'Accessible'
     };
     const modeLabel = modeLabels[practiceMode] || practiceMode;
-    title = `Subwaydle Practice (${modeLabel} #${practiceGameIndex})`;
+    title = `Subwaydle Remastered Practice (${modeLabel} #${practiceGameIndex})`;
     
     if (practiceMode === 'accessible') {
       title += ' ♿️';
@@ -24,11 +24,11 @@ export const shareStatus = (guesses, lost, practiceMode = null, practiceGameInde
   } else {
     // Regular daily puzzle
     if (isNight()) {
-      title = `Subwaydle ${todayGameIndex()} (Late Night Edition)`;
+      title = `Subwaydle Remastered ${todayGameIndex()} (Late Night Edition)`;
     } else if (isWeekend) {
-      title = `Subwaydle ${todayGameIndex()} (Weekend Edition)`;
+      title = `Subwaydle Remastered ${todayGameIndex()} (Weekend Edition)`;
     } else if (isAccessible()) {
-      title = `Subwaydle ${todayGameIndex()} ♿️`
+      title = `Subwaydle Remastered ${todayGameIndex()} ♿️`
     }
   }
   

@@ -38,7 +38,7 @@ const Countdown = () => {
 
   return (
     <Header as='h5'>
-      Next Subwaydle in { formatNumber(countDown/3600) }:{ formatNumber(countDown/60 % 60) }:{ formatNumber(countDown % 60) }
+      Next Subwaydle Remastered in { formatNumber(countDown/3600) }:{ formatNumber(countDown/60 % 60) }:{ formatNumber(countDown % 60) }
     </Header>
   );
 }
