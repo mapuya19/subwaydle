@@ -1,4 +1,4 @@
-import { Progress } from 'semantic-ui-react';
+import { Header, Statistic } from 'semantic-ui-react';
 
 const Histogram = (props) => {
   const { stats } = props;

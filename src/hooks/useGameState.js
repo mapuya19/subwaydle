@@ -12,6 +12,7 @@ export const useGameState = (practiceMode, effectivePracticeGameIndex) => {
   const [guesses, setGuesses] = useState([]);
   const [isNotEnoughRoutes, setIsNotEnoughRoutes] = useState(false);
   const [isGuessInvalid, setIsGuessInvalid] = useState(false);
+  const [toastStack, setToastStack] = useState([]);
   const [absentRoutes, setAbsentRoutes] = useState([]);
   const [presentRoutes, setPresentRoutes] = useState([]);
   const [similarRoutes, setSimilarRoutes] = useState([]);
@@ -42,6 +43,8 @@ export const useGameState = (practiceMode, effectivePracticeGameIndex) => {
     setIsNotEnoughRoutes,
     isGuessInvalid,
     setIsGuessInvalid,
+    toastStack,
+    setToastStack,
     absentRoutes,
     setAbsentRoutes,
     presentRoutes,

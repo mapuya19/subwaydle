@@ -1,6 +1,6 @@
 // Game constants
 export const ATTEMPTS = 6;
-export const ALERT_TIME_MS = 2000;
+export const ALERT_TIME_MS = 1500;
 
 // Practice mode constants
 export const VALID_PRACTICE_MODES = ['weekday', 'weekend', 'night', 'accessible'];

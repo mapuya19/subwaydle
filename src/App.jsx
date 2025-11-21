@@ -6,9 +6,10 @@
  */
 
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { Header, Segment, Icon, Message, Loader, Dimmer } from 'semantic-ui-react';
+import { Header, Segment, Icon, Loader, Dimmer } from 'semantic-ui-react';
 
 import { GameGrid, Keyboard } from './components/game';
+import { Toast } from './components/ui';
 
 import {
   isAccessible,
@@ -76,6 +77,8 @@ const App = () => {
     setIsNotEnoughRoutes,
     isGuessInvalid,
     setIsGuessInvalid,
+    toastStack,
+    setToastStack,
     absentRoutes,
     setAbsentRoutes,
     presentRoutes,
@@ -126,6 +129,8 @@ const App = () => {
     setIsSolutionsOpen,
     setIsNotEnoughRoutes,
     setIsGuessInvalid,
+    toastStack,
+    setToastStack,
     correctRoutes,
     setCorrectRoutes,
     similarRoutes,
@@ -233,18 +238,32 @@ const App = () => {
           <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} ♿️ to {stations[solution.destination].name} ♿️ using 2 accessible transfers.</Header>
         }
         <Segment basic className='game-grid-wrapper'>
-          {
-            isNotEnoughRoutes &&
-            <Message negative floating attached='top'>
-              <Message.Header>Not enough trains for the trip</Message.Header>
-            </Message>
-          }
-          {
-            isGuessInvalid &&
-            <Message negative>
-              <Message.Header>Not a valid trip</Message.Header>
-            </Message>
-          }
+          {toastStack.map((toast, arrayIndex) => {
+            // Reverse the index so most recent toast (last in array) appears at top
+            // Most recent toast = index 0 (top), older toasts below
+            const visualIndex = toastStack.length - 1 - arrayIndex;
+            return (
+              <Toast
+                key={toast.id}
+                message={toast.message}
+                show={toast.visible !== false}
+                index={visualIndex}
+                onComplete={() => {
+                  setToastStack((prev) => {
+                    const filtered = prev.filter((t) => t.id !== toast.id);
+                    // Update boolean states if no more toasts of this type
+                    if (filtered.filter(t => t.type === 'not-enough').length === 0) {
+                      setIsNotEnoughRoutes(false);
+                    }
+                    if (filtered.filter(t => t.type === 'invalid').length === 0) {
+                      setIsGuessInvalid(false);
+                    }
+                    return filtered;
+                  });
+                }}
+              />
+            );
+          })}
           <GameGrid
             currentGuess={currentGuess}
             guesses={guesses}

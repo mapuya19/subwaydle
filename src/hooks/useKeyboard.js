@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { routesWithNoService, isValidGuess, updateGuessStatuses } from '../utils/answerValidations';
 import { flattenedTodaysTrip } from '../utils/answerValidations';
 import { addStatsForCompletedGame } from '../utils/stats';
@@ -22,6 +22,8 @@ export const useKeyboard = ({
   setIsSolutionsOpen,
   setIsNotEnoughRoutes,
   setIsGuessInvalid,
+  toastStack,
+  setToastStack,
   correctRoutes,
   setCorrectRoutes,
   similarRoutes,
@@ -35,6 +37,9 @@ export const useKeyboard = ({
   stats,
   setStats,
 }) => {
+  const toastIdCounter = useRef(0);
+  const lastEnterPressRef = useRef({ time: 0, guess: null });
+  
   const onChar = useCallback((routeId) => {
     setCurrentGuess((prevGuess) => {
       if (!isStatsOpen && !isGameWon && prevGuess.length < 3 && guesses.length < ATTEMPTS) {
@@ -56,6 +61,17 @@ export const useKeyboard = ({
   }, [setCurrentGuess]);
 
   const onEnter = useCallback(() => {
+    const now = Date.now();
+    const guessKey = JSON.stringify(currentGuess);
+    
+    // Prevent duplicate toasts from the same Enter press (within 150ms with same guess)
+    if (now - lastEnterPressRef.current.time < 150 && 
+        lastEnterPressRef.current.guess === guessKey) {
+      return;
+    }
+    
+    lastEnterPressRef.current = { time: now, guess: guessKey };
+    
     setCurrentGuess((prevGuess) => {
       const guessCount = guesses.length;
       if (isGameWon || isGameLost || guessCount === 6) {
@@ -63,17 +79,49 @@ export const useKeyboard = ({
       }
 
       if (prevGuess.length !== 3) {
+        // Add new toast to stack with unique ID, checking for duplicates
+        const toastId = `not-enough-${now}-${++toastIdCounter.current}`;
+        setToastStack((prev) => {
+          // Additional check: if a toast of this type was added very recently (within 50ms), don't add another
+          const veryRecentToast = prev.find(t => t.type === 'not-enough' && 
+            now - parseInt(t.id.split('-')[2]) < 50);
+          if (veryRecentToast) {
+            return prev; // Don't add duplicate
+          }
+          return [...prev, { id: toastId, message: 'Not enough trains for the trip', type: 'not-enough', visible: true }];
+        });
         setIsNotEnoughRoutes(true);
+        // Hide toast after timeout (Toast component will handle fade-out and removal)
         setTimeout(() => {
-          setIsNotEnoughRoutes(false)
+          setToastStack((prev) => {
+            return prev.map((toast) => 
+              toast.id === toastId ? { ...toast, visible: false } : toast
+            );
+          });
         }, ALERT_TIME_MS);
         return prevGuess;
       }
 
       if (!isValidGuess(prevGuess)) {
+        // Add new toast to stack with unique ID, checking for duplicates
+        const toastId = `invalid-${now}-${++toastIdCounter.current}`;
+        setToastStack((prev) => {
+          // Additional check: if a toast of this type was added very recently (within 50ms), don't add another
+          const veryRecentToast = prev.find(t => t.type === 'invalid' && 
+            now - parseInt(t.id.split('-')[1]) < 50);
+          if (veryRecentToast) {
+            return prev; // Don't add duplicate
+          }
+          return [...prev, { id: toastId, message: 'Not a valid trip', type: 'invalid', visible: true }];
+        });
         setIsGuessInvalid(true);
+        // Hide toast after timeout (Toast component will handle fade-out and removal)
         setTimeout(() => {
-          setIsGuessInvalid(false)
+          setToastStack((prev) => {
+            return prev.map((toast) => 
+              toast.id === toastId ? { ...toast, visible: false } : toast
+            );
+          });
         }, ALERT_TIME_MS);
         return prevGuess;
       }
@@ -124,7 +172,7 @@ export const useKeyboard = ({
 
       return [];
     });
-  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats]);
+  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, currentGuess, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setToastStack, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats]);
 
   return {
     onChar,
