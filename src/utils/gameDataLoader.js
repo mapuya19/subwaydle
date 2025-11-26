@@ -14,6 +14,73 @@ const GAME_EPOCH = new Date('January 29, 2022 00:00:00').valueOf();
 export const NIGHT_GAMES = [350, 351];
 export const ACCESSIBLE_GAME = 793;
 
+// Staten Island Railway can only interchange with the rest of the subway network
+// via the Staten Island Ferry (South Ferry, Whitehall St–South Ferry, Bowling Green).
+const SIR_STOP_ID = 'S31';
+const ALLOWED_SIR_TRANSFER_STOPS = new Set(['142', 'R27', '420']);
+
+const comboToKey = (combo) => Array.isArray(combo) ? combo.join('-') : combo;
+const keyToCombo = (key) => key.split('-');
+
+const comboIncludesRoute = (combo, routeId) => {
+  const routes = Array.isArray(combo) ? combo : `${combo}`.split('-');
+  return routes.includes(routeId);
+};
+
+const isValidSISolution = (solution) => {
+  if (!solution) {
+    return false;
+  }
+
+  const transferPairs = [
+    [solution.first_transfer_arrival, solution.first_transfer_departure],
+    [solution.second_transfer_arrival, solution.second_transfer_departure],
+  ];
+
+  let hasSIPair = false;
+
+  return transferPairs.every(([stopA, stopB]) => {
+    if (stopA === SIR_STOP_ID || stopB === SIR_STOP_ID) {
+      hasSIPair = true;
+      const otherStop = stopA === SIR_STOP_ID ? stopB : stopA;
+      return ALLOWED_SIR_TRANSFER_STOPS.has(otherStop);
+    }
+    return true;
+  }) && hasSIPair;
+};
+
+const hasInvalidSIRoute = (comboKey, solution) => {
+  if (!comboIncludesRoute(comboKey, 'SI')) {
+    return false;
+  }
+
+  if (!solution) {
+    return true;
+  }
+
+  const candidateSolutions = Array.isArray(solution) ? solution : [solution];
+  return !candidateSolutions.some(isValidSISolution);
+};
+
+export const removeDisconnectedRouteCombos = (answers = [], solutions = {}) => {
+  const filteredSolutions = Object.entries(solutions).reduce((acc, [key, value]) => {
+    if (!hasInvalidSIRoute(key, value)) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+
+  const filteredAnswers = answers.filter((combo) => {
+    const key = comboToKey(combo);
+    return filteredSolutions[key];
+  }).map((combo) => (Array.isArray(combo) ? combo : keyToCombo(combo)));
+
+  return {
+    answers: filteredAnswers,
+    solutions: filteredSolutions,
+  };
+};
+
 const treatAsUTC = (date) => {
   const result = new Date(date);
   result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
@@ -78,8 +145,12 @@ export const loadGameData = async (practiceMode = null) => {
     import(`../data/${mode}/solutions.json`),
     import(`../data/${mode}/routings.json`),
   ]).then(([answersModule, solutionsModule, routingsModule]) => {
-    gameDataCache.answers = answersModule.default;
-    gameDataCache.solutions = solutionsModule.default;
+    const { answers, solutions } = removeDisconnectedRouteCombos(
+      answersModule.default,
+      solutionsModule.default,
+    );
+    gameDataCache.answers = answers;
+    gameDataCache.solutions = solutions;
     gameDataCache.routings = routingsModule.default;
     gameDataCache.loading = false;
     return gameDataCache;
