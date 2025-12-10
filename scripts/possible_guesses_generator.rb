@@ -51,11 +51,9 @@ def path_moves_forward?(path, route, route_indices, origin: nil, destination: ni
   
   # If moving backward on route, check if it's acceptable
   if decreasing
-    # Allow very short backward segments (1-2 stations) - likely necessary for transfers
-    return true if path.length <= 2
-    
-    # For longer backward segments, check if overall direction makes sense
-    if origin && latlng && path.length > 2
+    # For backward segments, always check if overall direction makes sense
+    # Even short segments (1-2 stations) should make geographic sense
+    if origin && latlng
       start_station = path.first
       end_station = path.last
       
@@ -84,6 +82,24 @@ def path_moves_forward?(path, route, route_indices, origin: nil, destination: ni
         dist_from_journey_end_end = latlng[journey_endpoint].distance_to(latlng[end_station])
         moving_away_from_journey_end = dist_from_journey_end_end > dist_from_journey_end_start
         
+        # For very short backward segments (adjacent stations), be more strict:
+        # Require that it moves away from origin AND away from journey endpoint
+        # AND that the distance moved is significant (not just a tiny geographic adjustment)
+        if path.length == 2
+          # For adjacent station backward movement, require more significant geographic movement
+          station_distance = latlng[start_station].distance_to(latlng[end_station])
+          # If stations are close (< 0.5 miles), this is likely unnecessary backtracking
+          # unless it's moving significantly away from both origin and journey endpoint
+          if station_distance < 0.5
+            # Require substantial movement away from both points
+            origin_movement = dist_from_origin_end - dist_from_origin_start
+            journey_movement = dist_from_journey_end_end - dist_from_journey_end_start
+            # Both movements should be at least 0.15 miles to be considered valid
+            # This ensures we're not just making tiny adjustments but actually progressing
+            return moving_away_from_origin && moving_away_from_journey_end && origin_movement > 0.15 && journey_movement > 0.15
+          end
+        end
+        
         # Allow backward segment if moving away from origin AND away from journey endpoint
         # This handles curved routes where going backward on one route is necessary
         # to continue the journey in a different direction
@@ -94,7 +110,7 @@ def path_moves_forward?(path, route, route_indices, origin: nil, destination: ni
       return moving_away_from_origin
     end
     
-    # If we don't have origin/latlng info, reject longer backward segments
+    # If we don't have origin/latlng info, reject backward segments
     return false
   end
   
