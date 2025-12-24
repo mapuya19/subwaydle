@@ -1,7 +1,7 @@
 require "csv"
 require "json"
 
-routes = ["1", "2", "3", "4", "5", "6", "7", "A1", "A2", "B", "C", "D", "E", "F", "G", "J", "L", "M", "N", "Q", "R", "W", "SI", "FS", "GS", "H"]
+routes = ["1", "2", "3", "4", "5", "6", "7", "A1", "A2", "B", "C", "D", "E", "F", "F-Weekend", "G", "J", "L", "M", "N", "Q", "R", "W", "SI", "FS", "GS", "H"]
 
 data = {}
 

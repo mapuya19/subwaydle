@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
-import { todaysTrip, todaysSolution } from '../../../utils/answerValidations';
+import { isWeekend, todaysTrip, todaysSolution } from '../../../utils/answerValidations';
 
 import stations from "../../../data/stations.json";
 import routes from "../../../data/routes.json";
@@ -110,6 +110,8 @@ const MapFrame = (props) => {
       } else {
         shape = shapes['A2'];
       }
+    } else if (line.route === 'F' && isWeekend(practiceMode)) {
+      shape = shapes['F-Weekend'];
     } else {
       shape = shapes[line.route];
     }
@@ -143,7 +145,7 @@ const MapFrame = (props) => {
         "coordinates": coordinates
       }
     }
-  }, [shapes]);
+  }, [shapes, practiceMode]);
 
   // Initialize map once
   useEffect(() => {
