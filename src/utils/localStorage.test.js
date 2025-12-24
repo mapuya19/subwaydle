@@ -8,161 +8,260 @@ import {
   isNewToGame,
 } from './localStorage';
 
-// Mock localStorage with shared store
-let store = {};
+// LocalStorage mock following best practices from Stack Overflow
+// https://stackoverflow.com/questions/32911630/how-do-i-deal-with-localstorage-in-jest-tests
+class LocalStorageMock {
+  constructor() {
+    this.store = {};
+    this.shouldThrow = false;
+  }
 
-const createLocalStorageMock = () => {
-  return {
-    getItem: jest.fn((key) => {
-      return store[key] || null;
-    }),
-    setItem: jest.fn((key, value) => {
-      store[key] = value.toString();
-    }),
-    removeItem: jest.fn((key) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-  };
-};
+  clear() {
+    this.store = {};
+  }
 
-let localStorageMock;
+  getItem(key) {
+    if (this.shouldThrow) {
+      throw new Error('Storage quota exceeded');
+    }
+    return this.store[key] || null;
+  }
+
+  setItem(key, value) {
+    if (this.shouldThrow) {
+      throw new Error('Storage quota exceeded');
+    }
+    this.store[key] = String(value);
+  }
+
+  removeItem(key) {
+    delete this.store[key];
+  }
+}
+
+let originalLocalStorage;
 
 beforeAll(() => {
-  localStorageMock = createLocalStorageMock();
+  // Use class-based mock for better compatibility
+  originalLocalStorage = global.localStorage;
+  const mockInstance = new LocalStorageMock();
+  global.localStorage = mockInstance;
+  
+  // Also set on window for components that access window.localStorage
   Object.defineProperty(window, 'localStorage', {
-    value: localStorageMock,
+    value: mockInstance,
     writable: true,
+    configurable: true,
   });
+  
+  // Define localStorage globally if it doesn't exist
+  if (typeof global.localStorage === 'undefined') {
+    global.localStorage = mockInstance;
+  }
+});
+
+afterAll(() => {
+  global.localStorage = originalLocalStorage;
 });
 
 describe('localStorage utilities', () => {
   beforeEach(() => {
-    // Clear the store and reset mock call history, but keep implementations
-    store = {};
+    // Clear localStorage before each test
+    global.localStorage.clear();
+    global.localStorage.shouldThrow = false;
+    window.localStorage.clear();
+    window.localStorage.shouldThrow = false;
     jest.clearAllMocks();
-    // Re-implement mocks to use the cleared store
-    localStorageMock.getItem.mockImplementation((key) => store[key] || null);
-    localStorageMock.setItem.mockImplementation((key, value) => {
-      store[key] = value.toString();
-    });
-    localStorageMock.removeItem.mockImplementation((key) => {
-      delete store[key];
-    });
-    localStorageMock.clear.mockImplementation(() => {
-      store = {};
-    });
+  });
+
+  afterEach(() => {
+    // Reset shouldThrow after each test
+    global.localStorage.shouldThrow = false;
+    window.localStorage.shouldThrow = false;
   });
 
   describe('saveGameStateToLocalStorage', () => {
-    test('saves game state to localStorage', () => {
+    it('saves and loads game state', () => {
       const gameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
       const result = saveGameStateToLocalStorage(gameState);
       expect(result).toBe(true);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'gameState',
-        JSON.stringify(gameState)
-      );
+      const loaded = loadGameStateFromLocalStorage();
+      expect(loaded).toEqual(gameState);
     });
 
-    test('returns false when gameState is null', () => {
-      const result = saveGameStateToLocalStorage(null);
+    it('returns false for null game state', () => {
+      expect(saveGameStateToLocalStorage(null)).toBe(false);
+    });
+
+    it('handles practice mode keys correctly', () => {
+      const gameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
+      saveGameStateToLocalStorage(gameState, 'night', 5);
+      const loaded = loadGameStateFromLocalStorage('night', 5);
+      expect(loaded).toEqual(gameState);
+      
+      // Regular mode should not have this data
+      expect(loadGameStateFromLocalStorage()).toBeNull();
+    });
+
+    it('handles storage errors gracefully', () => {
+      // Spy on setItem and make it throw
+      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('Storage quota exceeded');
+      });
+      
+      const gameState = { guesses: [['1', '2', '3']] };
+      const result = saveGameStateToLocalStorage(gameState);
       expect(result).toBe(false);
+      expect(setItemSpy).toHaveBeenCalled();
+      
+      setItemSpy.mockRestore();
     });
   });
 
   describe('loadGameStateFromLocalStorage', () => {
-    test('returns null when no game state exists', () => {
-      const result = loadGameStateFromLocalStorage();
-      expect(result).toBeNull();
+    it('returns null for empty storage', () => {
+      expect(loadGameStateFromLocalStorage()).toBeNull();
     });
 
-    test('returns parsed game state when it exists', () => {
-      const gameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
-      localStorageMock.setItem('gameState', JSON.stringify(gameState));
-      const result = loadGameStateFromLocalStorage();
-      expect(result).toEqual(gameState);
+    it('returns null for invalid JSON and removes corrupted data', () => {
+      global.localStorage.setItem('gameState', 'invalid json{');
+      expect(loadGameStateFromLocalStorage()).toBeNull();
+      // Corrupted data should be removed
+      expect(global.localStorage.getItem('gameState')).toBeNull();
+    });
+
+    it('handles whitespace-only values', () => {
+      global.localStorage.setItem('gameState', '   ');
+      expect(loadGameStateFromLocalStorage()).toBeNull();
     });
   });
 
   describe('saveStatsToLocalStorage', () => {
-    test('saves stats to localStorage', () => {
+    it('saves and loads stats', () => {
       const stats = { gamesPlayed: 5, gamesWon: 3 };
       const result = saveStatsToLocalStorage(stats);
       expect(result).toBe(true);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'gameStats',
-        JSON.stringify(stats)
-      );
+      const loaded = loadStatsFromLocalStorage();
+      expect(loaded).toEqual(stats);
     });
 
-    test('returns false when stats is null', () => {
-      const result = saveStatsToLocalStorage(null);
-      expect(result).toBe(false);
+    it('returns false for null stats', () => {
+      expect(saveStatsToLocalStorage(null)).toBe(false);
+    });
+
+    it('handles storage errors gracefully', () => {
+      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('Storage quota exceeded');
+      });
+      
+      const stats = { gamesPlayed: 5 };
+      expect(saveStatsToLocalStorage(stats)).toBe(false);
+      expect(setItemSpy).toHaveBeenCalled();
+      
+      setItemSpy.mockRestore();
     });
   });
 
   describe('loadStatsFromLocalStorage', () => {
-    test('returns null when no stats exist', () => {
-      const result = loadStatsFromLocalStorage();
-      expect(result).toBeNull();
+    it('returns null for empty storage', () => {
+      expect(loadStatsFromLocalStorage()).toBeNull();
     });
 
-    test('returns parsed stats when they exist', () => {
-      const stats = { gamesPlayed: 5, gamesWon: 3 };
-      localStorageMock.setItem('gameStats', JSON.stringify(stats));
-      const result = loadStatsFromLocalStorage();
-      expect(result).toEqual(stats);
+    it('returns null for invalid JSON and removes corrupted data', () => {
+      global.localStorage.setItem('gameStats', 'not json');
+      expect(loadStatsFromLocalStorage()).toBeNull();
+      expect(global.localStorage.getItem('gameStats')).toBeNull();
     });
   });
 
   describe('saveSettingsToLocalStorage', () => {
-    test('saves settings to localStorage', () => {
+    it('saves and loads settings', () => {
       const settings = { display: { darkMode: true } };
       const result = saveSettingsToLocalStorage(settings);
       expect(result).toBe(true);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'gameSettings',
-        JSON.stringify(settings)
-      );
+      const loaded = loadSettingsFromLocalStorage();
+      expect(loaded).toEqual(settings);
     });
 
-    test('returns false when settings is null', () => {
-      const result = saveSettingsToLocalStorage(null);
-      expect(result).toBe(false);
+    it('returns false for null settings', () => {
+      expect(saveSettingsToLocalStorage(null)).toBe(false);
+    });
+
+    it('handles storage errors gracefully', () => {
+      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('Storage quota exceeded');
+      });
+      
+      const settings = { display: { darkMode: true } };
+      expect(saveSettingsToLocalStorage(settings)).toBe(false);
+      expect(setItemSpy).toHaveBeenCalled();
+      
+      setItemSpy.mockRestore();
     });
   });
 
   describe('loadSettingsFromLocalStorage', () => {
-    test('returns null when no settings exist', () => {
-      const result = loadSettingsFromLocalStorage();
-      expect(result).toBeNull();
+    it('returns null for empty storage', () => {
+      expect(loadSettingsFromLocalStorage()).toBeNull();
     });
 
-    test('returns parsed settings when they exist', () => {
-      const settings = { display: { darkMode: true } };
-      localStorageMock.setItem('gameSettings', JSON.stringify(settings));
-      const result = loadSettingsFromLocalStorage();
-      expect(result).toEqual(settings);
+    it('returns null for invalid JSON and removes corrupted data', () => {
+      global.localStorage.setItem('gameSettings', 'corrupted{');
+      expect(loadSettingsFromLocalStorage()).toBeNull();
+      expect(global.localStorage.getItem('gameSettings')).toBeNull();
     });
   });
 
   describe('isNewToGame', () => {
-    test('returns true when no game state or stats exist', () => {
+    it('returns true when no game state or stats exist', () => {
       expect(isNewToGame()).toBe(true);
     });
 
-    test('returns false when game state exists', () => {
-      localStorageMock.setItem('gameState', JSON.stringify({ guesses: [] }));
+    it('returns false when game state exists', () => {
+      global.localStorage.setItem('gameState', JSON.stringify({ guesses: [] }));
       expect(isNewToGame()).toBe(false);
     });
 
-    test('returns false when stats exist', () => {
-      localStorageMock.setItem('gameStats', JSON.stringify({ gamesPlayed: 1 }));
+    it('returns false when stats exist', () => {
+      global.localStorage.setItem('gameStats', JSON.stringify({ totalGames: 1 }));
       expect(isNewToGame()).toBe(false);
+    });
+
+    it('handles practice mode keys correctly', () => {
+      expect(isNewToGame('night', 5)).toBe(true);
+      global.localStorage.setItem('gameState_night_5', JSON.stringify({ guesses: [] }));
+      expect(isNewToGame('night', 5)).toBe(false);
+      expect(isNewToGame()).toBe(true); // Regular mode still new
+    });
+  });
+
+  describe('localStorage unavailable scenarios', () => {
+    it('handles missing localStorage gracefully', () => {
+      const originalLocalStorage = global.localStorage;
+      delete global.localStorage;
+      delete window.localStorage;
+
+      const gameState = { guesses: [['1', '2', '3']] };
+      expect(saveGameStateToLocalStorage(gameState)).toBe(false);
+      expect(loadGameStateFromLocalStorage()).toBeNull();
+
+      // Restore
+      global.localStorage = originalLocalStorage;
+      window.localStorage = originalLocalStorage;
+    });
+
+    it('handles localStorage with missing methods', () => {
+      const brokenStorage = {};
+      global.localStorage = brokenStorage;
+      window.localStorage = brokenStorage;
+
+      const gameState = { guesses: [['1', '2', '3']] };
+      expect(saveGameStateToLocalStorage(gameState)).toBe(false);
+      expect(loadGameStateFromLocalStorage()).toBeNull();
+
+      // Restore
+      global.localStorage = new LocalStorageMock();
+      window.localStorage = global.localStorage;
     });
   });
 });
-
