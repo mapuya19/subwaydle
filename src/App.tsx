@@ -267,10 +267,12 @@ const App = () => {
           <GameGrid
             currentGuess={currentGuess}
             guesses={guesses}
+            isGameWon={isGameWon}
+            isGameLost={isGameLost}
             attempts={ATTEMPTS}
             inPlay={!isGameWon && !isGameLost && guesses.length < 6}
             practiceMode={practiceMode}
-            practiceGameIndex={effectivePracticeGameIndex}
+            practiceGameIndex={effectivePracticeGameIndex ?? undefined}
             shouldShake={isNotEnoughRoutes || isGuessInvalid}
           />
         </Segment>
