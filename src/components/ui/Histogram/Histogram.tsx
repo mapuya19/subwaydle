@@ -1,7 +1,11 @@
 import { Header, Statistic } from 'semantic-ui-react';
+import { GameStats } from '../../../utils/stats';
 
-const Histogram = (props) => {
-  const { stats } = props;
+interface HistogramProps {
+  stats: GameStats;
+}
+
+const Histogram = ({ stats }: HistogramProps) => {
   return (
     <>
       <Header as='h3'>Statistics</Header>
@@ -25,6 +29,6 @@ const Histogram = (props) => {
       </Statistic.Group>
     </>
   );
-}
+};
 
 export default Histogram;

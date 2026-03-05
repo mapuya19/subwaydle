@@ -1,8 +1,14 @@
 import './TrainBullet.scss';
 
-// Map route IDs to SVG filenames in public folder
-const getSvgFileName = (id) => {
-  const svgMap = {
+type TrainBulletSize = 'small' | 'medium' | 'large';
+
+interface TrainBulletProps {
+  id: string;
+  size?: TrainBulletSize;
+}
+
+const getSvgFileName = (id: string): string => {
+  const svgMap: Record<string, string> = {
     'GS': 's',
     'FS': 'sf',
     'SI': 'sir',
@@ -13,7 +19,6 @@ const getSvgFileName = (id) => {
     return svgMap[id];
   }
   
-  // Numbers stay as-is, letters convert to lowercase
   if (/^\d+$/.test(id)) {
     return id;
   }
@@ -21,8 +26,7 @@ const getSvgFileName = (id) => {
   return id.toLowerCase();
 };
 
-const TrainBullet = (props) => {
-  const { id, size = 'medium' } = props;
+const TrainBullet = ({ id, size = 'medium' }: TrainBulletProps) => {
   const svgFileName = getSvgFileName(id);
   const svgPath = `/train-bullets/${svgFileName}.svg`;
 
@@ -33,6 +37,6 @@ const TrainBullet = (props) => {
       className={`train-bullet train-bullet-${size}`}
     />
   );
-}
+};
 
 export default TrainBullet;

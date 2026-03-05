@@ -3,10 +3,39 @@ import { routesWithNoService, isValidGuess, updateGuessStatuses } from '../utils
 import { flattenedTodaysTrip } from '../utils/answerValidations';
 import { addStatsForCompletedGame } from '../utils/stats';
 import { ATTEMPTS, ALERT_TIME_MS } from '../utils/constants';
+import { GameStats } from '../utils/stats';
+import { PracticeMode } from '../utils/constants';
 
-/**
- * Hook to handle keyboard input and game logic
- */
+interface UseKeyboardProps {
+  isStatsOpen: boolean;
+  isGameWon: boolean;
+  isGameLost: boolean;
+  guesses: string[][];
+  setGuesses: (guesses: string[][]) => void;
+  currentGuess: string[];
+  setCurrentGuess: (guess: string[] | ((prev: string[]) => string[])) => void;
+  practiceMode: PracticeMode | null;
+  effectivePracticeGameIndex: number | null;
+  setIsGameWon: (won: boolean) => void;
+  setIsGameLost: (lost: boolean) => void;
+  setIsSolutionsOpen: (open: boolean) => void;
+  setIsNotEnoughRoutes: (notEnough: boolean) => void;
+  setIsGuessInvalid: (invalid: boolean) => void;
+  setToastStack: (toasts: any[] | ((prev: any[]) => any[])) => void;
+  correctRoutes: string[];
+  setCorrectRoutes: (routes: string[]) => void;
+  similarRoutes: string[];
+  setSimilarRoutes: (routes: string[]) => void;
+  presentRoutes: string[];
+  setPresentRoutes: (routes: string[]) => void;
+  absentRoutes: string[];
+  setAbsentRoutes: (routes: string[]) => void;
+  similarRoutesIndexes: Record<string, number[]>;
+  setSimilarRoutesIndexes: (indexes: Record<string, number[]>) => void;
+  stats: GameStats;
+  setStats: (stats: GameStats) => void;
+}
+
 export const useKeyboard = ({
   isStatsOpen,
   isGameWon,
@@ -22,7 +51,6 @@ export const useKeyboard = ({
   setIsSolutionsOpen,
   setIsNotEnoughRoutes,
   setIsGuessInvalid,
-  toastStack,
   setToastStack,
   correctRoutes,
   setCorrectRoutes,
@@ -36,11 +64,11 @@ export const useKeyboard = ({
   setSimilarRoutesIndexes,
   stats,
   setStats,
-}) => {
+}: UseKeyboardProps) => {
   const toastIdCounter = useRef(0);
-  const lastEnterPressRef = useRef({ time: 0, guess: null });
+  const lastEnterPressRef = useRef<{ time: number; guess: string | null }>({ time: 0, guess: null });
   
-  const onChar = useCallback((routeId) => {
+  const onChar = useCallback((routeId: string) => {
     setCurrentGuess((prevGuess) => {
       if (!isStatsOpen && !isGameWon && prevGuess.length < 3 && guesses.length < ATTEMPTS) {
         if (!routesWithNoService(practiceMode).includes(routeId)) {
@@ -64,7 +92,6 @@ export const useKeyboard = ({
     const now = Date.now();
     const guessKey = JSON.stringify(currentGuess);
     
-    // Prevent duplicate toasts from the same Enter press (within 150ms with same guess)
     if (now - lastEnterPressRef.current.time < 150 && 
         lastEnterPressRef.current.guess === guessKey) {
       return;
@@ -79,22 +106,19 @@ export const useKeyboard = ({
       }
 
       if (prevGuess.length !== 3) {
-        // Add new toast to stack with unique ID, checking for duplicates
         const toastId = `not-enough-${now}-${++toastIdCounter.current}`;
         setToastStack((prev) => {
-          // Additional check: if a toast of this type was added very recently (within 50ms), don't add another
-          const veryRecentToast = prev.find(t => t.type === 'not-enough' && 
+          const veryRecentToast = prev.find((t: any) => t.type === 'not-enough' && 
             now - parseInt(t.id.split('-')[2]) < 50);
           if (veryRecentToast) {
-            return prev; // Don't add duplicate
+            return prev;
           }
-          return [...prev, { id: toastId, message: 'Not enough trains for the trip', type: 'not-enough', visible: true }];
+          return [...prev, { id: toastId, message: 'Not enough trains for trip', type: 'not-enough', visible: true }];
         });
         setIsNotEnoughRoutes(true);
-        // Hide toast after timeout (Toast component will handle fade-out and removal)
         setTimeout(() => {
           setToastStack((prev) => {
-            return prev.map((toast) => 
+            return prev.map((toast: any) => 
               toast.id === toastId ? { ...toast, visible: false } : toast
             );
           });
@@ -103,22 +127,19 @@ export const useKeyboard = ({
       }
 
       if (!isValidGuess(prevGuess)) {
-        // Add new toast to stack with unique ID, checking for duplicates
         const toastId = `invalid-${now}-${++toastIdCounter.current}`;
         setToastStack((prev) => {
-          // Additional check: if a toast of this type was added very recently (within 50ms), don't add another
-          const veryRecentToast = prev.find(t => t.type === 'invalid' && 
+          const veryRecentToast = prev.find((t: any) => t.type === 'invalid' && 
             now - parseInt(t.id.split('-')[1]) < 50);
           if (veryRecentToast) {
-            return prev; // Don't add duplicate
+            return prev;
           }
           return [...prev, { id: toastId, message: 'Not a valid trip', type: 'invalid', visible: true }];
         });
         setIsGuessInvalid(true);
-        // Hide toast after timeout (Toast component will handle fade-out and removal)
         setTimeout(() => {
           setToastStack((prev) => {
-            return prev.map((toast) => 
+            return prev.map((toast: any) => 
               toast.id === toastId ? { ...toast, visible: false } : toast
             );
           });
@@ -149,7 +170,6 @@ export const useKeyboard = ({
       setGuesses(newGuesses);
 
       if (winningGuess) {
-        // Only update stats for regular games, not practice mode
         if (!practiceMode) {
           const updatedStats = addStatsForCompletedGame(stats, guessCount);
           setStats(updatedStats);
@@ -160,7 +180,6 @@ export const useKeyboard = ({
       }
 
       if (newGuesses.length === 6) {
-        // Only update stats for regular games, not practice mode
         if (!practiceMode) {
           const updatedStats = addStatsForCompletedGame(stats, guessCount + 1);
           setStats(updatedStats);
@@ -172,7 +191,7 @@ export const useKeyboard = ({
 
       return [];
     });
-  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, currentGuess, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setToastStack, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats]);
+  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, currentGuess, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setToastStack, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats, isStatsOpen]);
 
   return {
     onChar,
@@ -180,4 +199,3 @@ export const useKeyboard = ({
     onEnter,
   };
 };
-

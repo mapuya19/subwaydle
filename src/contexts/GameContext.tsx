@@ -1,8 +1,12 @@
 import { createContext, useContext } from 'react';
 
-const GameContext = createContext(null);
+interface GameContextValue {
+  [key: string]: any;
+}
 
-export const GameProvider = ({ value, children }) => {
+const GameContext = createContext<GameContextValue | null>(null);
+
+export const GameProvider = ({ value, children }: { value: GameContextValue; children: React.ReactNode }) => {
   return (
     <GameContext.Provider value={value}>
       {children}
@@ -10,11 +14,10 @@ export const GameProvider = ({ value, children }) => {
   );
 };
 
-export const useGame = () => {
+export const useGame = (): GameContextValue => {
   const context = useContext(GameContext);
   if (!context) {
     throw new Error('useGame must be used within GameProvider');
   }
   return context;
 };
-

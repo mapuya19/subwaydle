@@ -1,17 +1,23 @@
 import {
   loadStatsFromLocalStorage,
   saveStatsToLocalStorage,
-} from './localStorage'
+} from './localStorage';
 
-// In stats array elements 0-5 are successes in 1-6 tries
-export const addStatsForCompletedGame = (gameStats, count) => {
-  // Count is number of incorrect guesses before end.
+export type GameStats = {
+  winDistribution: number[];
+  gamesFailed: number;
+  currentStreak: number;
+  bestStreak: number;
+  totalGames: number;
+  successRate: number;
+};
+
+export const addStatsForCompletedGame = (gameStats: GameStats, count: number): GameStats => {
   const stats = { ...gameStats };
 
   stats.totalGames += 1;
 
   if (count > 5) {
-    // A fail situation
     stats.currentStreak = 0;
     stats.gamesFailed += 1;
   } else {
@@ -27,25 +33,25 @@ export const addStatsForCompletedGame = (gameStats, count) => {
 
   saveStatsToLocalStorage(stats);
   return stats;
-}
+};
 
-const defaultStats = {
+const defaultStats: GameStats = {
   winDistribution: [0, 0, 0, 0, 0, 0],
   gamesFailed: 0,
   currentStreak: 0,
   bestStreak: 0,
   totalGames: 0,
   successRate: 0,
-}
+};
 
-export const loadStats = () => {
+export const loadStats = (): GameStats => {
   return loadStatsFromLocalStorage() || defaultStats;
-}
+};
 
-const getSuccessRate = (gameStats) => {
+const getSuccessRate = (gameStats: GameStats): number => {
   const { totalGames, gamesFailed } = gameStats;
 
   return Math.round(
     (100 * (totalGames - gamesFailed)) / Math.max(totalGames, 1)
   );
-}
+};
