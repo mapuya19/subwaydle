@@ -188,7 +188,7 @@ const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFramePro
     });
     map.current.dragRotate.disable();
     map.current.touchZoomRotate.disableRotation();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!map.current || !shapes) return;
