@@ -1,25 +1,22 @@
 import { useState, useEffect } from 'react';
 import { flattenedTodaysTrip } from '../utils/answerValidations';
 import { saveGameStateToLocalStorage } from '../utils/localStorage';
+import { PracticeMode } from '../utils/constants';
 
-/**
- * Hook to manage game state (guesses, game status, etc.)
- */
-export const useGameState = (practiceMode, effectivePracticeGameIndex) => {
-  const [currentGuess, setCurrentGuess] = useState([]);
-  const [isGameWon, setIsGameWon] = useState(false);
-  const [isGameLost, setIsGameLost] = useState(false);
-  const [guesses, setGuesses] = useState([]);
-  const [isNotEnoughRoutes, setIsNotEnoughRoutes] = useState(false);
-  const [isGuessInvalid, setIsGuessInvalid] = useState(false);
-  const [toastStack, setToastStack] = useState([]);
-  const [absentRoutes, setAbsentRoutes] = useState([]);
-  const [presentRoutes, setPresentRoutes] = useState([]);
-  const [similarRoutes, setSimilarRoutes] = useState([]);
-  const [similarRoutesIndexes, setSimilarRoutesIndexes] = useState({});
-  const [correctRoutes, setCorrectRoutes] = useState([]);
+export const useGameState = (practiceMode: PracticeMode | null, effectivePracticeGameIndex: number | null) => {
+  const [currentGuess, setCurrentGuess] = useState<string[]>([]);
+  const [isGameWon, setIsGameWon] = useState<boolean>(false);
+  const [isGameLost, setIsGameLost] = useState<boolean>(false);
+  const [guesses, setGuesses] = useState<string[][]>([]);
+  const [isNotEnoughRoutes, setIsNotEnoughRoutes] = useState<boolean>(false);
+  const [isGuessInvalid, setIsGuessInvalid] = useState<boolean>(false);
+  const [toastStack, setToastStack] = useState<Array<{ id: string; message: string; type?: string }>>([]);
+  const [absentRoutes, setAbsentRoutes] = useState<string[]>([]);
+  const [presentRoutes, setPresentRoutes] = useState<string[]>([]);
+  const [similarRoutes, setSimilarRoutes] = useState<string[]>([]);
+  const [similarRoutesIndexes, setSimilarRoutesIndexes] = useState<Record<string, number[]>>({});
+  const [correctRoutes, setCorrectRoutes] = useState<string[]>([]);
 
-  // Save game state to localStorage
   useEffect(() => {
     if (guesses.length > 0 || isGameWon || isGameLost) {
       saveGameStateToLocalStorage(
@@ -57,4 +54,3 @@ export const useGameState = (practiceMode, effectivePracticeGameIndex) => {
     setCorrectRoutes,
   };
 };
-

@@ -1,18 +1,23 @@
 import { createContext, useContext, useState, useMemo } from 'react';
-import { loadSettings, saveSettings } from '../utils/settings';
+import { loadSettings, saveSettings, GameSettings } from '../utils/settings';
 import { isNight, todayGameIndex, NIGHT_GAMES } from '../utils/answerValidations';
 
-const SettingsContext = createContext(null);
+interface SettingsContextValue {
+  settings: GameSettings;
+  setSettings: (settings: GameSettings) => void;
+}
 
-export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(() => loadSettings());
+const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-  const updateSettings = (newSettings) => {
+export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
+  const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
+
+  const updateSettings = (newSettings: GameSettings) => {
     saveSettings(newSettings);
     setSettings(newSettings);
   };
 
-  const value = {
+  const value: SettingsContextValue = {
     settings,
     setSettings: updateSettings,
   };
@@ -24,7 +29,7 @@ export const SettingsProvider = ({ children }) => {
   );
 };
 
-export const useSettings = () => {
+export const useSettings = (): SettingsContextValue => {
   const context = useContext(SettingsContext);
   if (!context) {
     throw new Error('useSettings must be used within SettingsProvider');
@@ -32,16 +37,10 @@ export const useSettings = () => {
   return context;
 };
 
-/**
- * Hook to get isDarkMode based on settings and practice mode
- * @param {string} practiceMode - Current practice mode
- * @returns {boolean} - Whether dark mode is active
- */
-export const useDarkMode = (practiceMode = null) => {
+export const useDarkMode = (practiceMode: string | null = null): boolean => {
   const { settings } = useSettings();
   return useMemo(() => {
     const currentIsNight = isNight(practiceMode);
     return currentIsNight || (todayGameIndex() > Math.max(...NIGHT_GAMES) && settings.display.darkMode);
   }, [settings.display.darkMode, practiceMode]);
 };
-

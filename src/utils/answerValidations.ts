@@ -6,9 +6,21 @@ const ROUTES_WITH_NO_WEEKEND_SERVICE = ['B', 'W'];
 const ROUTES_WITH_NO_NIGHT_SERVICE = ['B', 'C', 'W', 'GS'];
 const DEKALB_AV_FLATBUSH_STOP = "R30";
 
-const isSimilarToAnswerTrain = (guess, index, practiceMode = null, practiceGameIndex = null) => {
-  let begin;
-  let end;
+type Guess = string[];
+
+type RouteInfo = {
+  id: string;
+  name: string;
+  color: string;
+  text_color: string | null;
+  alternate_name: string | null;
+};
+
+type RoutesData = Record<string, RouteInfo>;
+
+const isSimilarToAnswerTrain = (guess: string, index: number, practiceMode: string | null = null, practiceGameIndex: number | null = null): boolean => {
+  let begin: string;
+  let end: string;
   const answer = todaysTrip(practiceMode, practiceGameIndex)[index];
   const solution = todaysSolution(practiceMode, practiceGameIndex);
   const routings = todaysRoutings();
@@ -34,6 +46,10 @@ const isSimilarToAnswerTrain = (guess, index, practiceMode = null, practiceGameI
 
   const answerSubrouting = retrieveSubrouting(answer, routings, begin, end);
 
+  if (!answerSubrouting) {
+    return false;
+  }
+
   const guessSubroutingInner = guessSubrouting.slice(1, guessSubrouting.length).filter(s => s !== DEKALB_AV_FLATBUSH_STOP);
   const answerSubroutingInner = answerSubrouting.slice(1, answerSubrouting.length).filter(s => s !== DEKALB_AV_FLATBUSH_STOP);
 
@@ -42,10 +58,10 @@ const isSimilarToAnswerTrain = (guess, index, practiceMode = null, practiceGameI
   }
 
   return false;
-}
+};
 
-const retrieveSubrouting = (train, routings, begin, end) => {
-  let trainLookup;
+const retrieveSubrouting = (train: string, routings: Record<string, string[]>, begin: string, end: string): string[] | undefined => {
+  let trainLookup: string;
   if (train === 'A') {
     if (routings['A1'].includes(begin) && routings['A1'].includes(end)) {
       trainLookup = 'A1';
@@ -56,8 +72,8 @@ const retrieveSubrouting = (train, routings, begin, end) => {
     trainLookup = train;
   }
 
-  const beginIndex = [begin, transfers[begin]].flat().filter(n => n).map(s => routings[trainLookup].indexOf(s)).find(i => i > -1);
-  const endIndex = [end, transfers[end]].flat().filter(n => n).map(s => routings[trainLookup].indexOf(s)).find(i => i > -1);
+  const beginIndex = [begin, (transfers as Record<string, string[]>)[begin]].flat().filter(n => n).map(s => routings[trainLookup].indexOf(s)).find(i => i > -1);
+  const endIndex = [end, (transfers as Record<string, string[]>)[end]].flat().filter(n => n).map(s => routings[trainLookup].indexOf(s)).find(i => i > -1);
 
   if (beginIndex == null || endIndex == null) {
     return;
@@ -67,13 +83,11 @@ const retrieveSubrouting = (train, routings, begin, end) => {
     return routings[trainLookup].slice(beginIndex, endIndex + 1);
   }
   return routings[trainLookup].slice(endIndex, beginIndex + 1);
-}
+};
 
-// Re-export from gameDataLoader for backwards compatibility
 export { todayGameIndex, NIGHT_GAMES };
 
-const getGameModeFlags = (practiceMode = null) => {
-  // If practice mode is enabled, derive flags from the mode
+const getGameModeFlags = (practiceMode: string | null = null): { isNight: boolean; isAccessible: boolean; isWeekend: boolean } => {
   if (practiceMode) {
     return {
       isNight: practiceMode === 'night',
@@ -82,7 +96,6 @@ const getGameModeFlags = (practiceMode = null) => {
     };
   }
 
-  // Otherwise, use automatic detection
   const today = new Date();
   const index = todayGameIndex();
   return {
@@ -92,7 +105,7 @@ const getGameModeFlags = (practiceMode = null) => {
   };
 };
 
-export const routesWithNoService = (practiceMode = null) => {
+export const routesWithNoService = (practiceMode: string | null = null): string[] => {
   const { isNight, isWeekend: isWeekendFlag } = getGameModeFlags(practiceMode);
   if (isNight) {
     return ROUTES_WITH_NO_NIGHT_SERVICE;
@@ -101,48 +114,74 @@ export const routesWithNoService = (practiceMode = null) => {
     return ROUTES_WITH_NO_WEEKEND_SERVICE;
   }
   return [];
-}
+};
 
-export const isValidGuess = (guess) => {
+export const isValidGuess = (guess: Guess): boolean => {
   const { solutions } = getGameData();
+  if (!solutions) return false;
   const flattenedGuess = guess.join('-');
   return !!solutions[flattenedGuess];
-}
+};
 
-export const isNight = (practiceMode = null) => getGameModeFlags(practiceMode).isNight;
-export const isAccessible = (practiceMode = null) => getGameModeFlags(practiceMode).isAccessible;
-export const isWeekend = (practiceMode = null) => getGameModeFlags(practiceMode).isWeekend;
+export const isNight = (practiceMode: string | null = null): boolean => getGameModeFlags(practiceMode).isNight;
+export const isAccessible = (practiceMode: string | null = null): boolean => getGameModeFlags(practiceMode).isAccessible;
+export const isWeekend = (practiceMode: string | null = null): boolean => getGameModeFlags(practiceMode).isWeekend;
 
-const todaysRoutings = () => {
+const todaysRoutings = (): Record<string, string[]> => {
   const { routings } = getGameData();
+  if (!routings) {
+    throw new Error('Routings not loaded');
+  }
   return routings;
-}
+};
 
-export const todaysTrip = (practiceMode = null, practiceGameIndex = null) => {
+export const todaysTrip = (practiceMode: string | null = null, practiceGameIndex: number | null = null): string[] => {
   const { answers } = getGameData();
-  let index;
+  if (!answers) {
+    throw new Error('Answers not loaded');
+  }
+  let index: number;
   if (practiceMode && practiceGameIndex !== null) {
     index = practiceGameIndex;
   } else {
     index = todayGameIndex();
   }
   return answers[index % answers.length];
-}
+};
 
-export const flattenedTodaysTrip = (practiceMode = null, practiceGameIndex = null) => {
+export const flattenedTodaysTrip = (practiceMode: string | null = null, practiceGameIndex: number | null = null): string => {
   return todaysTrip(practiceMode, practiceGameIndex).join('-');
-}
+};
 
-export const todaysSolution = (practiceMode = null, practiceGameIndex = null) => {
+export const todaysSolution = (practiceMode: string | null = null, practiceGameIndex: number | null = null): any => {
   const { solutions } = getGameData();
+  if (!solutions) {
+    throw new Error('Solutions not loaded');
+  }
   return solutions[todaysTrip(practiceMode, practiceGameIndex).join("-")];
-}
+};
 
-export const isWinningGuess = (guess) => {
+export const isWinningGuess = (guess: Guess): boolean => {
   return guess.join('-') === todaysTrip().join('-');
-}
+};
 
-export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode = null, practiceGameIndex = null) => {
+type GuessStatus = 'correct' | 'similar' | 'sameColor' | 'present' | 'absent';
+
+export const updateGuessStatuses = (
+  guesses: Guess[],
+  setCorrectRoutes: (routes: string[]) => void,
+  setSimilarRoutes: (routes: string[]) => void,
+  setPresentRoutes: (routes: string[]) => void,
+  setAbsentRoutes: (routes: string[]) => void,
+  setSimilarRoutesIndexes: (indexes: Record<string, number[]>) => void,
+  correctRoutes: string[] | undefined,
+  similarRoutes: string[] | undefined,
+  presentRoutes: string[] | undefined,
+  absentRoutes: string[] | undefined,
+  similarRoutesIndexes: Record<string, number[]> | undefined,
+  practiceMode: string | null = null,
+  practiceGameIndex: number | null = null
+): void => {
   const correct = correctRoutes || [];
   let similar = similarRoutes || [];
   let present = presentRoutes || [];
@@ -150,24 +189,22 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
   const similarIndexes = similarRoutesIndexes || {};
 
   guesses.forEach((guess) => {
-    const remainingRoutes = [];
-    const remainingGuessPositions = [];
-    const similarPositions = new Set();
-    const routesToAddToSimilar = new Set();
-    const routesToAddToPresent = new Set();
-    const routesToAddToAbsent = new Set();
-    const sameColorPositions = new Set();
+    const remainingRoutes: string[] = [];
+    const remainingGuessPositions: number[] = [];
+    const similarPositions = new Set<number>();
+    const routesToAddToSimilar = new Set<string>();
+    const routesToAddToPresent = new Set<string>();
+    const routesToAddToAbsent = new Set<string>();
+    const sameColorPositions = new Set<number>();
 
     todaysTrip(practiceMode, practiceGameIndex).forEach((routeId, index) => {
       if (guess[index] === routeId) {
-        // Route is correct - remove from all other arrays
         if (!correct.includes(routeId)) {
           correct.push(routeId);
         }
         similar = similar.filter(t => t !== routeId);
         present = present.filter(t => t !== routeId);
         absent = absent.filter(t => t !== routeId);
-        // Clean up similar indexes for this position
         Object.keys(similarIndexes).forEach((r) => {
           const s = similarIndexes[r];
           if (s.includes(index)) {
@@ -196,7 +233,6 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
       }
     });
 
-    // Process remaining positions (not correct, similar, or sameColor)
     remainingGuessPositions.forEach((index) => {
       if (!similarPositions.has(index) && !sameColorPositions.has(index)) {
         if (remainingRoutes.includes(guess[index])) {
@@ -207,7 +243,6 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
       }
     });
 
-    // Apply route updates in priority order: similar > present > absent
     routesToAddToSimilar.forEach((routeId) => {
       if (!similar.includes(routeId)) {
         similar.push(routeId);
@@ -237,28 +272,25 @@ export const updateGuessStatuses = (guesses, setCorrectRoutes, setSimilarRoutes,
   setPresentRoutes(present);
   setAbsentRoutes(absent);
   setSimilarRoutesIndexes(similarIndexes);
-}
+};
 
-// Helper function to check if two routes share the same color
-// Excludes Staten Island Railroad and shuttles (GS, FS, H) as they're separate systems
-const hasSameColor = (route1, route2) => {
+const hasSameColor = (route1: string, route2: string): boolean => {
   const EXCLUDED_ROUTES = ['SI', 'GS', 'FS', 'H'];
   
-  // Don't apply same-color hint for excluded routes
   if (EXCLUDED_ROUTES.includes(route1) || EXCLUDED_ROUTES.includes(route2)) {
     return false;
   }
   
-  const r1 = routes[route1];
-  const r2 = routes[route2];
+  const r1 = (routes as RoutesData)[route1];
+  const r2 = (routes as RoutesData)[route2];
   if (!r1 || !r2) return false;
   return r1.color === r2.color;
-}
+};
 
-export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex = null) => {
-  const results = ['absent', 'absent', 'absent'];
-  const remainingRoutes = [];
-  const remainingGuessPositions = [];
+export const checkGuessStatuses = (guess: Guess, practiceMode: string | null = null, practiceGameIndex: number | null = null): GuessStatus[] => {
+  const results: GuessStatus[] = ['absent', 'absent', 'absent'];
+  const remainingRoutes: string[] = [];
+  const remainingGuessPositions: number[] = [];
 
   todaysTrip(practiceMode, practiceGameIndex).forEach((routeId, index) => {
     if (guess[index] === routeId) {
@@ -269,14 +301,12 @@ export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex
       if (isSimilarToAnswerTrain(guess[index], index, practiceMode, practiceGameIndex)) {
         results[index] = 'similar';
       } else if (hasSameColor(guess[index], routeId)) {
-        // NEW: Mark as 'sameColor' if routes share the same color (deeper orange hint)
         results[index] = 'sameColor';
       }
     }
   });
 
   remainingGuessPositions.forEach((index) => {
-    // Priority: correct > similar > sameColor > present > absent
     if (results[index] !== 'similar' && results[index] !== 'correct' && results[index] !== 'sameColor') {
       if (remainingRoutes.includes(guess[index])) {
         results[index] = 'present';
@@ -285,4 +315,4 @@ export const checkGuessStatuses = (guess, practiceMode = null, practiceGameIndex
   });
 
   return results;
-}
+};

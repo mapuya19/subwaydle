@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
 import { isWeekend, todaysTrip, todaysSolution } from '../../../utils/answerValidations';
@@ -8,21 +7,49 @@ import stations from "../../../data/stations.json";
 import routes from "../../../data/routes.json";
 
 import { MANHATTAN_TILT, DEFAULT_LNG, DEFAULT_LAT, DEFAULT_ZOOM } from '../../../utils/constants';
+import { PracticeMode } from '../../../utils/constants';
 
 import './MapFrame.scss';
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+(mapboxgl as any).accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
-const MapFrame = (props) => {
-  const { practiceMode = null, practiceGameIndex = null } = props;
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [lng, setLng] = useState(DEFAULT_LNG);
-  const [lat, setLat] = useState(DEFAULT_LAT);
-  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-  const [shapes, setShapes] = useState(null);
+interface MapFrameProps {
+  practiceMode?: PracticeMode | null;
+  practiceGameIndex?: number | null;
+}
 
-  // Lazy load the large shapes.json file (996KB) to reduce initial bundle size
+type Station = {
+  name: string;
+  longitude: number;
+  latitude: number;
+};
+
+type StationsData = Record<string, Station>;
+
+type RouteInfo = {
+  id: string;
+  name: string;
+  color: string;
+  text_color: string | null;
+  alternate_name: string | null;
+};
+
+type RoutesData = Record<string, RouteInfo>;
+
+type Line = {
+  route: string;
+  begin: string;
+  end: string;
+};
+
+const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFrameProps) => {
+  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [lng, setLng] = useState<number>(DEFAULT_LNG);
+  const [lat, setLat] = useState<number>(DEFAULT_LAT);
+  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
+  const [shapes, setShapes] = useState<Record<string, number[][]> | null>(null);
+
   useEffect(() => {
     import("../../../data/shapes.json").then((shapesModule) => {
       setShapes(shapesModule.default);
@@ -42,7 +69,7 @@ const MapFrame = (props) => {
     return {
       "type": "FeatureCollection",
       "features": [...new Set(stops)].map((stopId) => {
-        const station = stations[stopId];
+        const station = (stations as StationsData)[stopId];
         return {
           "type": "Feature",
           "properties": {
@@ -58,20 +85,19 @@ const MapFrame = (props) => {
     };
   }, [practiceMode, practiceGameIndex]);
 
-  const lineGeoJson = useCallback((line) => {
-    if (!shapes) return null; // Wait for shapes to load
+  const lineGeoJson = useCallback((line: Line) => {
+    if (!shapes) return null;
     
-    const route = routes[line.route];
-    if (!route) return null; // Route doesn't exist
+    const route = (routes as RoutesData)[line.route];
+    if (!route) return null;
     
-    let shape;
-    const beginCoord = [stations[line.begin].longitude, stations[line.begin].latitude];
-    const endCoord = [stations[line.end].longitude, stations[line.end].latitude];
-    let coordinates = [];
+    let shape: number[][] | undefined;
+    const beginCoord = [(stations as StationsData)[line.begin].longitude, (stations as StationsData)[line.begin].latitude];
+    const endCoord = [(stations as StationsData)[line.end].longitude, (stations as StationsData)[line.end].latitude];
+    let coordinates: number[][] = [];
 
-    // Helper function to find the closest coordinate index using tolerance
-    const findClosestCoordIndex = (targetCoord, shapeArray) => {
-      const TOLERANCE = 0.0001; // Approximately 11 meters
+    const findClosestCoordIndex = (targetCoord: number[], shapeArray: number[][]): number => {
+      const TOLERANCE = 0.0001;
       let closestIndex = -1;
       let minDistance = Infinity;
       
@@ -82,12 +108,10 @@ const MapFrame = (props) => {
           Math.pow(coord[1] - targetCoord[1], 2)
         );
         
-        // First try exact match
         if (distance < TOLERANCE) {
           if (distance < 0.00001) {
-            return i; // Exact match found
+            return i;
           }
-          // Track closest match within tolerance
           if (distance < minDistance) {
             minDistance = distance;
             closestIndex = i;
@@ -116,13 +140,13 @@ const MapFrame = (props) => {
       shape = shapes[line.route];
     }
 
-    if (!shape) return null; // Shape doesn't exist
+    if (!shape) return null;
 
     const beginIndex = findClosestCoordIndex(beginCoord, shape);
     const endIndex = findClosestCoordIndex(endCoord, shape);
 
     if (beginIndex === -1 || endIndex === -1) {
-      return null; // Couldn't find coordinates
+      return null;
     }
 
     if (beginIndex < endIndex) {
@@ -132,7 +156,7 @@ const MapFrame = (props) => {
     }
 
     if (coordinates.length === 0) {
-      return null; // No coordinates found
+      return null;
     }
 
     return {
@@ -144,14 +168,13 @@ const MapFrame = (props) => {
         "type": "LineString",
         "coordinates": coordinates
       }
-    }
+    };
   }, [shapes, practiceMode]);
 
-  // Initialize map once
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    if (map.current) return;
     map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+      container: mapContainer.current as HTMLElement,
       style: 'mapbox://styles/mapbox/dark-v10',
       center: [lng, lat],
       bearing: MANHATTAN_TILT,
@@ -165,33 +188,32 @@ const MapFrame = (props) => {
     });
     map.current.dragRotate.disable();
     map.current.touchZoomRotate.disableRotation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Add map layers when shapes data is loaded
   useEffect(() => {
     if (!map.current || !shapes) return;
     
     const addMapLayers = () => {
-      if (!map.current.loaded()) {
-        map.current.once('load', addMapLayers);
+      if (!map.current || !map.current.loaded()) {
+        if (map.current) {
+          map.current.once('load', addMapLayers);
+        }
         return;
       }
 
-      // Remove existing layers if they exist
       ['line-0', 'line-1', 'line-2', 'Stops'].forEach((layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.removeLayer(layerId);
+        if (map.current!.getLayer(layerId)) {
+          map.current!.removeLayer(layerId);
         }
-        if (map.current.getSource(layerId)) {
-          map.current.removeSource(layerId);
+        if (map.current!.getSource(layerId)) {
+          map.current!.removeSource(layerId);
         }
       });
 
-      map.current.resize();
+      map.current!.resize();
       const trip = todaysTrip(practiceMode, practiceGameIndex);
       const solution = todaysSolution(practiceMode, practiceGameIndex);
-      let coordinates = [];
+      let coordinates: number[][] = [];
       [
         {
           route: trip[0],
@@ -208,16 +230,15 @@ const MapFrame = (props) => {
           begin: solution.second_transfer_departure,
           end: solution.destination,
         },
-      ].forEach((line, i) => {
+      ].forEach((line, _i) => {
         const lineJson = lineGeoJson(line);
         if (!lineJson) return;
-        coordinates = coordinates.concat(lineJson.geometry.coordinates);
-        const layerId = `line-${i}`;
-        map.current.addSource(layerId, {
+        const layerId = `line-${_i}`;
+        map.current!.addSource(layerId, {
           "type": "geojson",
-          "data": lineJson
+          "data": lineJson as any
         });
-        map.current.addLayer({
+        map.current!.addLayer({
           "id": layerId,
           "type": "line",
           "source": layerId,
@@ -232,11 +253,11 @@ const MapFrame = (props) => {
         });
       });
       const stopsJson = stopsGeoJson();
-      map.current.addSource("Stops", {
+      map.current!.addSource("Stops", {
         "type": "geojson",
-        "data": stopsJson
+        "data": stopsJson as any
       });
-      map.current.addLayer({
+      map.current!.addLayer({
         "id": "Stops",
         "type": "symbol",
         "source": "Stops",
@@ -259,11 +280,11 @@ const MapFrame = (props) => {
         },
       });
       const bounds = coordinates.reduce((bounds, coord) => {
-        return bounds.extend(coord);
-      }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+        return bounds.extend(coord as [number, number]);
+      }, new mapboxgl.LngLatBounds(coordinates[0] as [number, number], coordinates[0] as [number, number]));
 
       if (!bounds.isEmpty()) {
-        map.current.fitBounds(bounds, {
+        map.current!.fitBounds(bounds, {
           padding: {
             top: 20,
             right: 20,
@@ -279,11 +300,11 @@ const MapFrame = (props) => {
   }, [shapes, lineGeoJson, stopsGeoJson, practiceMode, practiceGameIndex]);
 
   useEffect(() => {
-    if (!map.current) return; // wait for map to initialize
+    if (!map.current) return;
     const handleMove = () => {
-      setLng(map.current.getCenter().lng.toFixed(4));
-      setLat(map.current.getCenter().lat.toFixed(4));
-      setZoom(map.current.getZoom().toFixed(2));
+      setLng(Number(map.current!.getCenter().lng.toFixed(4)));
+      setLat(Number(map.current!.getCenter().lat.toFixed(4)));
+      setZoom(Number(map.current!.getZoom().toFixed(2)));
     };
     
     map.current.on('move', handleMove);
@@ -300,11 +321,6 @@ const MapFrame = (props) => {
       <div ref={mapContainer} className="map-container" />
     </div>
   );
-}
-
-MapFrame.propTypes = {
-  practiceMode: PropTypes.string,
-  practiceGameIndex: PropTypes.number,
 };
 
 export default MapFrame;

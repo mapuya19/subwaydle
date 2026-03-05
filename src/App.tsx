@@ -1,10 +1,3 @@
-/**
- * Copyright (c) 2022 Sunny Ng
- * 
- * This software is licensed under the MIT License.
- * See LICENSE file for full license text.
- */
-
 import { useState, lazy, Suspense, useEffect } from 'react';
 import { Header, Segment, Icon, Loader, Dimmer } from 'semantic-ui-react';
 
@@ -21,6 +14,7 @@ import {
 
 import stations from './data/stations.json';
 import { ATTEMPTS } from './utils/constants';
+import { PracticeMode } from './utils/constants';
 
 import { useGameState } from './hooks/useGameState';
 import { useGameData } from './hooks/useGameData';
@@ -31,26 +25,30 @@ import { useStats } from './contexts/StatsContext';
 
 import './App.scss';
 
-// Lazy load modals for better performance
 const AboutModal = lazy(() => import('./components/modals/AboutModal'));
 const SolutionModal = lazy(() => import('./components/modals/SolutionModal'));
 const StatsModal = lazy(() => import('./components/stats/StatsModal'));
 const SettingsModal = lazy(() => import('./components/modals/SettingsModal'));
 const PracticeModal = lazy(() => import('./components/modals/PracticeModal'));
 
-const App = () => {
-  // Modal state
-  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
-  const [isStatsOpen, setIsStatsOpen] = useState(false);
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isPracticeOpen, setIsPracticeOpen] = useState(false);
+type Station = {
+  name: string;
+  longitude: number;
+  latitude: number;
+};
 
-  // Settings and stats from context
+type StationsData = Record<string, Station>;
+
+const App = () => {
+  const [isSolutionsOpen, setIsSolutionsOpen] = useState<boolean>(false);
+  const [isStatsOpen, setIsStatsOpen] = useState<boolean>(false);
+  const [isAboutOpen, setIsAboutOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isPracticeOpen, setIsPracticeOpen] = useState<boolean>(false);
+
   const { settings, setSettings } = useSettings();
   const { stats, setStats } = useStats();
 
-  // Practice mode hook
   const {
     practiceMode,
     effectivePracticeGameIndex,
@@ -60,10 +58,9 @@ const App = () => {
     previousPracticeMode,
     setPreviousPracticeMode,
     handlePracticeModeChange,
-  } = usePracticeMode(settings, setSettings);
+  } = usePracticeMode(settings, (s: any) => setSettings(s));
 
-  // Game state hook
-  const gameState = useGameState(practiceMode, effectivePracticeGameIndex);
+  const gameState = useGameState(practiceMode as PracticeMode | null, effectivePracticeGameIndex);
   const {
     currentGuess,
     setCurrentGuess,
@@ -91,14 +88,13 @@ const App = () => {
     setCorrectRoutes,
   } = gameState;
 
-  // Game data loading hook
   const { isDataLoaded, isGameDataLoaded } = useGameData(
-    practiceMode,
+    practiceMode as PracticeMode | null,
     effectivePracticeGameIndex,
     urlPracticeGameIndex,
     practiceGameIndex,
     setPracticeGameIndex,
-    previousPracticeMode,
+    previousPracticeMode as PracticeMode | null,
     setPreviousPracticeMode,
     setGuesses,
     setCurrentGuess,
@@ -113,7 +109,6 @@ const App = () => {
     setSimilarRoutesIndexes,
   );
 
-  // Keyboard handlers hook
   const { onChar, onDelete, onEnter } = useKeyboard({
     isStatsOpen,
     isGameWon,
@@ -122,14 +117,13 @@ const App = () => {
     setGuesses,
     currentGuess,
     setCurrentGuess,
-    practiceMode,
+    practiceMode: practiceMode as PracticeMode | null,
     effectivePracticeGameIndex,
     setIsGameWon,
     setIsGameLost,
     setIsSolutionsOpen,
     setIsNotEnoughRoutes,
     setIsGuessInvalid,
-    toastStack,
     setToastStack,
     correctRoutes,
     setCorrectRoutes,
@@ -145,9 +139,8 @@ const App = () => {
     setStats,
   });
 
-  // Modal handlers
-  const handleModalClose = (modal) => {
-    const setters = {
+  const handleModalClose = (modal: 'solutions' | 'stats' | 'about' | 'settings' | 'practice') => {
+    const setters: Record<string, (value: boolean) => void> = {
       solutions: setIsSolutionsOpen,
       stats: setIsStatsOpen,
       about: setIsAboutOpen,
@@ -157,8 +150,8 @@ const App = () => {
     setters[modal]?.(false);
   };
 
-  const handleModalOpen = (modal) => {
-    const setters = {
+  const handleModalOpen = (modal: 'solutions' | 'stats' | 'about' | 'settings' | 'practice') => {
+    const setters: Record<string, (value: boolean) => void> = {
       solutions: setIsSolutionsOpen,
       stats: setIsStatsOpen,
       about: setIsAboutOpen,
@@ -179,7 +172,6 @@ const App = () => {
   const isDarkMode = useDarkMode(practiceMode);
   const currentIsNight = isNight(practiceMode);
 
-  // Update theme-color meta tag for iOS browser bars
   useEffect(() => {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (themeColorMeta) {
@@ -187,7 +179,6 @@ const App = () => {
     }
   }, [isDarkMode]);
 
-  // Update body/html background for dark mode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark-mode');
@@ -198,7 +189,6 @@ const App = () => {
     }
   }, [isDarkMode]);
 
-  // Don't render game until data is loaded and matches current practice mode
   if (!isDataLoaded || !isGameDataLoaded) {
     return (
       <Dimmer active inverted>
@@ -207,9 +197,9 @@ const App = () => {
     );
   }
 
-  const solution = todaysSolution(practiceMode, effectivePracticeGameIndex);
-  const currentIsAccessible = isAccessible(practiceMode);
-  const currentIsWeekend = isWeekend(practiceMode);
+  const solution = todaysSolution(practiceMode as PracticeMode | null, effectivePracticeGameIndex);
+  const currentIsAccessible = isAccessible(practiceMode as PracticeMode | null);
+  const currentIsWeekend = isWeekend(practiceMode as PracticeMode | null);
 
   return (
     <div className={"outer-app-wrapper " + (isDarkMode ? 'dark' : '')}>
@@ -232,15 +222,13 @@ const App = () => {
           </div>
         </Segment>
         { !currentIsAccessible &&
-          <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} to {stations[solution.destination].name} using 2 transfers.</Header>
+          <Header as='h5' textAlign='center' className='hint'>Travel from {(stations as StationsData)[solution.origin].name} to {(stations as StationsData)[solution.destination].name} using 2 transfers.</Header>
         }
         { currentIsAccessible &&
-          <Header as='h5' textAlign='center' className='hint'>Travel from {stations[solution.origin].name} ♿️ to {stations[solution.destination].name} ♿️ using 2 accessible transfers.</Header>
+          <Header as='h5' textAlign='center' className='hint'>Travel from {(stations as StationsData)[solution.origin].name} ♿️ to {(stations as StationsData)[solution.destination].name} ♿️ using 2 accessible transfers.</Header>
         }
         <Segment basic className='game-grid-wrapper'>
-          {toastStack.map((toast, arrayIndex) => {
-            // Reverse the index so most recent toast (last in array) appears at top
-            // Most recent toast = index 0 (top), older toasts below
+          {toastStack.map((toast: any, arrayIndex: number) => {
             const visualIndex = toastStack.length - 1 - arrayIndex;
             return (
               <Toast
@@ -250,12 +238,11 @@ const App = () => {
                 index={visualIndex}
                 onComplete={() => {
                   setToastStack((prev) => {
-                    const filtered = prev.filter((t) => t.id !== toast.id);
-                    // Update boolean states if no more toasts of this type
-                    if (filtered.filter(t => t.type === 'not-enough').length === 0) {
+                    const filtered = prev.filter((t: any) => t.id !== toast.id);
+                    if (filtered.filter((t: any) => t.type === 'not-enough').length === 0) {
                       setIsNotEnoughRoutes(false);
                     }
-                    if (filtered.filter(t => t.type === 'invalid').length === 0) {
+                    if (filtered.filter((t: any) => t.type === 'invalid').length === 0) {
                       setIsGuessInvalid(false);
                     }
                     return filtered;
@@ -296,6 +283,6 @@ const App = () => {
       </Segment>
     </div>
   );
-}
+};
 
 export default App;

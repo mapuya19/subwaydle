@@ -51,6 +51,8 @@
     "@semantic-ui-react/css-patch": "^1.1.2",
     "@testing-library/dom": "^9.3.3",
     "@types/express": "^4.17.21",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "typescript": "^5.3.3",

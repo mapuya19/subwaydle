@@ -1,12 +1,8 @@
-/**
- * localStorage utility functions with error handling for unavailable storage.
- */
-
 const GAME_STATE_KEY = 'gameState';
 const GAME_STATS_KEY = 'gameStats';
 const GAME_SETTINGS_KEY = 'gameSettings';
 
-const isAvailable = () => {
+const isAvailable = (): boolean => {
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
     return false;
   }
@@ -17,7 +13,7 @@ const isAvailable = () => {
   );
 };
 
-const safeGet = (key) => {
+const safeGet = (key: string): string | null => {
   if (!isAvailable()) return null;
   try {
     return localStorage.getItem(key);
@@ -26,7 +22,7 @@ const safeGet = (key) => {
   }
 };
 
-const safeSet = (key, value) => {
+const safeSet = (key: string, value: string): boolean => {
   if (!isAvailable()) return false;
   try {
     localStorage.setItem(key, value);
@@ -36,7 +32,7 @@ const safeSet = (key, value) => {
   }
 };
 
-const safeRemove = (key) => {
+const safeRemove = (key: string): boolean => {
   if (!isAvailable()) return false;
   try {
     localStorage.removeItem(key);
@@ -46,7 +42,7 @@ const safeRemove = (key) => {
   }
 };
 
-const getGameStateKey = (practiceMode = null, practiceGameIndex = null) => {
+const getGameStateKey = (practiceMode: string | null = null, practiceGameIndex: number | null = null): string => {
   if (practiceMode && practiceGameIndex !== null) {
     const index = Number(practiceGameIndex);
     if (!isNaN(index) && index >= 0) {
@@ -56,7 +52,9 @@ const getGameStateKey = (practiceMode = null, practiceGameIndex = null) => {
   return GAME_STATE_KEY;
 };
 
-export const saveGameStateToLocalStorage = (gameState, practiceMode = null, practiceGameIndex = null) => {
+export type GameState = any;
+
+export const saveGameStateToLocalStorage = (gameState: GameState, practiceMode: string | null = null, practiceGameIndex: number | null = null): boolean => {
   if (!gameState) return false;
   const key = getGameStateKey(practiceMode, practiceGameIndex);
   try {
@@ -66,7 +64,7 @@ export const saveGameStateToLocalStorage = (gameState, practiceMode = null, prac
   }
 };
 
-export const loadGameStateFromLocalStorage = (practiceMode = null, practiceGameIndex = null) => {
+export const loadGameStateFromLocalStorage = (practiceMode: string | null = null, practiceGameIndex: number | null = null): GameState | null => {
   const key = getGameStateKey(practiceMode, practiceGameIndex);
   const state = safeGet(key);
   if (!state || !state.trim()) return null;
@@ -79,7 +77,7 @@ export const loadGameStateFromLocalStorage = (practiceMode = null, practiceGameI
   }
 };
 
-export const saveStatsToLocalStorage = (gameStats) => {
+export const saveStatsToLocalStorage = (gameStats: any): boolean => {
   if (!gameStats) return false;
   try {
     return safeSet(GAME_STATS_KEY, JSON.stringify(gameStats));
@@ -88,7 +86,7 @@ export const saveStatsToLocalStorage = (gameStats) => {
   }
 };
 
-export const loadStatsFromLocalStorage = () => {
+export const loadStatsFromLocalStorage = (): any | null => {
   const stats = safeGet(GAME_STATS_KEY);
   if (!stats || !stats.trim()) return null;
   
@@ -100,12 +98,12 @@ export const loadStatsFromLocalStorage = () => {
   }
 };
 
-export const isNewToGame = (practiceMode = null, practiceGameIndex = null) => {
+export const isNewToGame = (practiceMode: string | null = null, practiceGameIndex: number | null = null): boolean => {
   const gameStateKey = getGameStateKey(practiceMode, practiceGameIndex);
   return safeGet(gameStateKey) === null && safeGet(GAME_STATS_KEY) === null;
 };
 
-export const saveSettingsToLocalStorage = (gameSettings) => {
+export const saveSettingsToLocalStorage = (gameSettings: any): boolean => {
   if (!gameSettings) return false;
   try {
     return safeSet(GAME_SETTINGS_KEY, JSON.stringify(gameSettings));
@@ -114,7 +112,7 @@ export const saveSettingsToLocalStorage = (gameSettings) => {
   }
 };
 
-export const loadSettingsFromLocalStorage = () => {
+export const loadSettingsFromLocalStorage = (): any | null => {
   const settings = safeGet(GAME_SETTINGS_KEY);
   if (!settings || !settings.trim()) return null;
   
