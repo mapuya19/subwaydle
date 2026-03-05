@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import PropTypes from 'prop-types';
-import { Modal, Header, Button, Icon } from 'semantic-ui-react';
+import { Modal, Header, Button, Icon, Loader, Dimmer } from 'semantic-ui-react';
 
 import Stats from '../../stats/Stats/Stats';
 import TrainBullet from '../../ui/TrainBullet/TrainBullet';
-import MapFrame from '../../ui/MapFrame/MapFrame';
 import Countdown from '../../ui/Countdown/Countdown';
 
 import { todaysTrip, todaysSolution, isAccessible } from '../../../utils/answerValidations';
@@ -15,6 +14,8 @@ import { useStats } from '../../../contexts/StatsContext';
 import stations from "../../../data/stations.json";
 import { ALERT_TIME_MS, isIosDevice } from '../../../utils/constants';
 import './SolutionModal.scss';
+
+const MapFrame = lazy(() => import('../../ui/MapFrame/MapFrame'));
 
 const SolutionModal = (props) => {
   const { open, handleModalClose, isGameWon, guesses, practiceMode = null, practiceGameIndex = null } = props;
@@ -70,7 +71,15 @@ const SolutionModal = (props) => {
       <Modal.Header>{ title }</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-        { open && <MapFrame practiceMode={practiceMode} practiceGameIndex={practiceGameIndex} /> }
+        { open && (
+          <Suspense fallback={
+            <Dimmer active inverted>
+              <Loader size="small">Loading map...</Loader>
+            </Dimmer>
+          }>
+            <MapFrame practiceMode={practiceMode} practiceGameIndex={practiceGameIndex} />
+          </Suspense>
+        ) }
           <Header as='h3'>Today's Journey</Header>
           { !isAccessible(practiceMode) &&
             <>

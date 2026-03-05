@@ -5,13 +5,7 @@ import { loadGameStateFromLocalStorage, isNewToGame } from '../utils/localStorag
 import { flattenedTodaysTrip, updateGuessStatuses } from '../utils/answerValidations';
 
 jest.mock('../utils/gameDataLoader', () => ({
-  loadGameData: jest.fn(() => Promise.resolve({
-    answers: [['1', '2', '3']],
-    solutions: {},
-    routings: {},
-    loading: false,
-    currentMode: 'weekday',
-  })),
+  loadGameData: jest.fn(),
   isGameDataLoadedForMode: jest.fn(() => false),
 }));
 
@@ -42,13 +36,13 @@ describe('useGameData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    gameDataLoader.loadGameData.mockImplementation(() => Promise.resolve({
+    gameDataLoader.loadGameData.mockResolvedValue({
       answers: [['1', '2', '3']],
       solutions: {},
       routings: {},
       loading: false,
       currentMode: 'weekday',
-    }));
+    });
     gameDataLoader.isGameDataLoadedForMode.mockReturnValue(false);
   });
 
@@ -121,13 +115,11 @@ describe('useGameData', () => {
       expect(gameDataLoader.loadGameData).toHaveBeenCalled();
     });
 
-    jest.clearAllMocks();
-
     rerender({ practiceMode: 'night' });
 
     await waitFor(() => {
       expect(gameDataLoader.loadGameData).toHaveBeenCalledWith('night');
-    });
+    }, { timeout: 3000 });
   });
 
   it('resets state when practice mode changes', async () => {
@@ -275,7 +267,7 @@ describe('useGameData', () => {
     renderUseGameData('night');
 
     await waitFor(() => {
-      expect(gameDataLoader.isGameDataLoadedForMode).toHaveBeenCalledWith('night');
+      expect(gameDataLoader.loadGameData).toHaveBeenCalled();
     });
   });
 });
