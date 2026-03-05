@@ -191,7 +191,7 @@ export const useKeyboard = ({
 
       return [];
     });
-  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, currentGuess, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setToastStack, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats, isStatsOpen]);
+  }, [guesses, isGameWon, isGameLost, stats, correctRoutes, similarRoutes, presentRoutes, absentRoutes, similarRoutesIndexes, practiceMode, effectivePracticeGameIndex, currentGuess, setCurrentGuess, setGuesses, setIsGameWon, setIsGameLost, setIsSolutionsOpen, setIsNotEnoughRoutes, setIsGuessInvalid, setToastStack, setCorrectRoutes, setSimilarRoutes, setPresentRoutes, setAbsentRoutes, setSimilarRoutesIndexes, setStats]);
 
   return {
     onChar,
