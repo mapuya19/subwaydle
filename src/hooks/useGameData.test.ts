@@ -4,6 +4,8 @@ import * as gameDataLoader from '../utils/gameDataLoader';
 import { loadGameStateFromLocalStorage, isNewToGame } from '../utils/localStorage';
 import { flattenedTodaysTrip, updateGuessStatuses } from '../utils/answerValidations';
 
+type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+
 jest.mock('../utils/gameDataLoader', () => ({
   loadGameData: jest.fn(() => Promise.resolve({
     answers: [['1', '2', '3']],
@@ -42,25 +44,25 @@ describe('useGameData', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    gameDataLoader.loadGameData.mockImplementation(() => Promise.resolve({
+    (gameDataLoader.loadGameData as jest.Mock).mockImplementation(() => Promise.resolve({
       answers: [['1', '2', '3']],
       solutions: {},
       routings: {},
       loading: false,
       currentMode: 'weekday',
     }));
-    gameDataLoader.isGameDataLoadedForMode.mockReturnValue(false);
+    (gameDataLoader.isGameDataLoadedForMode as jest.Mock).mockReturnValue(false);
   });
 
-  const renderUseGameData = (practiceMode = null, effectivePracticeGameIndex = null) => {
+  const renderUseGameData = (practiceMode: PracticeMode = null, effectivePracticeGameIndex: number | null = null) => {
     return renderHook(() =>
       useGameData(
         practiceMode,
         effectivePracticeGameIndex,
-        null, // urlPracticeGameIndex
-        null, // practiceGameIndex
+        null,
+        null,
         mockSetPracticeGameIndex,
-        null, // previousPracticeMode
+        null,
         mockSetPreviousPracticeMode,
         mockSetGuesses,
         mockSetCurrentGuess,
@@ -114,7 +116,7 @@ describe('useGameData', () => {
           mockSetAbsentRoutes,
           mockSetSimilarRoutesIndexes,
         ),
-      { initialProps: { practiceMode: null } }
+      { initialProps: { practiceMode: null as PracticeMode } }
     );
 
     await waitFor(() => {
@@ -153,7 +155,7 @@ describe('useGameData', () => {
           mockSetAbsentRoutes,
           mockSetSimilarRoutesIndexes,
         ),
-      { initialProps: { practiceMode: null, previousPracticeMode: null } }
+      { initialProps: { practiceMode: null as PracticeMode, previousPracticeMode: null as PracticeMode } }
     );
 
     await waitFor(() => {
@@ -177,11 +179,11 @@ describe('useGameData', () => {
   it('loads saved game state from localStorage', async () => {
     const savedState = {
       guesses: [['1', '2', '3']],
-      answer: '1-2-3', // Must match flattenedTodaysTrip mock
+      answer: '1-2-3',
     };
-    loadGameStateFromLocalStorage.mockReturnValue(savedState);
-    isNewToGame.mockReturnValue(false);
-    flattenedTodaysTrip.mockReturnValue('1-2-3'); // Match saved answer
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
+    (isNewToGame as jest.Mock).mockReturnValue(false);
+    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
 
     renderUseGameData();
 
@@ -192,8 +194,8 @@ describe('useGameData', () => {
   });
 
   it('does not load state for new users', async () => {
-    isNewToGame.mockReturnValue(true);
-    loadGameStateFromLocalStorage.mockReturnValue(null);
+    (isNewToGame as jest.Mock).mockReturnValue(true);
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(null);
 
     renderUseGameData();
 
@@ -204,9 +206,9 @@ describe('useGameData', () => {
 
   it('handles practice mode in localStorage loading', async () => {
     const savedState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
-    loadGameStateFromLocalStorage.mockReturnValue(savedState);
-    isNewToGame.mockReturnValue(false);
-    flattenedTodaysTrip.mockReturnValue('1-2-3');
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
+    (isNewToGame as jest.Mock).mockReturnValue(false);
+    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
 
     renderUseGameData('night', 5);
 
@@ -220,9 +222,9 @@ describe('useGameData', () => {
       guesses: [['1', '2', '3'], ['4', '5', '6']],
       answer: '1-2-3',
     };
-    loadGameStateFromLocalStorage.mockReturnValue(savedState);
-    isNewToGame.mockReturnValue(false);
-    flattenedTodaysTrip.mockReturnValue('1-2-3'); // Match the saved answer
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
+    (isNewToGame as jest.Mock).mockReturnValue(false);
+    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
 
     renderUseGameData();
 
@@ -232,24 +234,22 @@ describe('useGameData', () => {
   });
 
   it('shows about modal for new users', async () => {
-    isNewToGame.mockReturnValue(true);
-    loadGameStateFromLocalStorage.mockReturnValue(null);
-    flattenedTodaysTrip.mockReturnValue('1-2-3');
+    (isNewToGame as jest.Mock).mockReturnValue(true);
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(null);
+    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
     
     const { result } = renderUseGameData();
 
-    // Wait for data to load first
     await waitFor(() => {
       expect(result.current.isDataLoaded).toBe(true);
     });
 
-    // Then check if about modal was opened
     expect(mockSetIsAboutOpen).toHaveBeenCalledWith(true);
   });
 
   it('does not show about modal for returning users', async () => {
-    isNewToGame.mockReturnValue(false);
-    loadGameStateFromLocalStorage.mockReturnValue({ guesses: [] });
+    (isNewToGame as jest.Mock).mockReturnValue(false);
+    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue({ guesses: [] });
 
     renderUseGameData();
 
@@ -259,18 +259,17 @@ describe('useGameData', () => {
   });
 
   it('handles game data loading errors gracefully', async () => {
-    gameDataLoader.loadGameData.mockRejectedValueOnce(new Error('Failed to load'));
+    (gameDataLoader.loadGameData as jest.Mock).mockRejectedValueOnce(new Error('Failed to load'));
 
     const { result } = renderUseGameData();
 
     await waitFor(() => {
-      // Should still complete without crashing
       expect(result.current).toBeDefined();
     });
   });
 
   it('checks if game data is loaded for current mode', async () => {
-    gameDataLoader.isGameDataLoadedForMode.mockReturnValue(true);
+    (gameDataLoader.isGameDataLoadedForMode as jest.Mock).mockReturnValue(true);
 
     renderUseGameData('night');
 
@@ -279,4 +278,3 @@ describe('useGameData', () => {
     });
   });
 });
-

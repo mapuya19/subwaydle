@@ -1,5 +1,10 @@
-// Define mocks before imports (Jest hoists mock calls)
-const mockRoutes = {
+interface Route {
+  id: string;
+  name: string;
+  color: string;
+}
+
+const mockRoutes: Record<string, Route> = {
   '1': { id: '1', name: '1', color: '#db2828' },
   '2': { id: '2', name: '2', color: '#db2828' },
   '3': { id: '3', name: '3', color: '#db2828' },
@@ -11,12 +16,25 @@ const mockRoutes = {
   'GS': { id: 'GS', name: 'GS', color: '#6cbe45' },
 };
 
-const mockTransfers = {
+const mockTransfers: Record<string, string[]> = {
   'R01': ['R10'],
   'R03': ['R15'],
 };
 
-const mockGameData = {
+interface Solution {
+  origin: string;
+  destination: string;
+  first_transfer_arrival?: string;
+  first_transfer_departure?: string;
+  second_transfer_arrival?: string;
+  second_transfer_departure?: string;
+}
+
+const mockGameData: {
+  answers: string[][];
+  solutions: Record<string, Solution>;
+  routings: Record<string, string[]>;
+} = {
   answers: [['1', '2', '3'], ['4', '5', '6']],
   solutions: {
     '1-2-3': {
@@ -84,6 +102,8 @@ import {
   flattenedTodaysTrip,
 } from './answerValidations';
 
+type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+
 describe('answerValidations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,7 +127,7 @@ describe('answerValidations', () => {
     it('checks if guess matches solution', () => {
       expect(isWinningGuess(['1', '2', '3'])).toBe(true);
       expect(isWinningGuess(['X', 'Y', 'Z'])).toBe(false);
-      expect(isWinningGuess(['4', '5', '6'])).toBe(false); // Different game index
+      expect(isWinningGuess(['4', '5', '6'])).toBe(false);
     });
   });
 
@@ -118,19 +138,15 @@ describe('answerValidations', () => {
     });
 
     it('returns absent for routes not in solution', () => {
-      // Use routes that exist in mock data but are wrong
       const result = checkGuessStatuses(['4', '5', '6']);
-      // These routes exist but don't match the solution '1-2-3'
       expect(result[0]).toBe('absent');
       expect(result[1]).toBe('absent');
       expect(result[2]).toBe('absent');
     });
 
     it('handles mixed correct and incorrect guesses', () => {
-      // First route is correct, others are wrong
       const result = checkGuessStatuses(['1', '4', '5']);
       expect(result[0]).toBe('correct');
-      // Routes 4 and 5 exist but are not in the answer
       expect(result[1]).toBe('absent');
       expect(result[2]).toBe('absent');
     });
@@ -209,15 +225,12 @@ describe('answerValidations', () => {
     });
 
     it('detects weekend based on current day when no practice mode', () => {
-      // Mock Saturday (Jan 6, 2024 is a Saturday)
       jest.setSystemTime(new Date('2024-01-06T12:00:00'));
       expect(isWeekend(null)).toBe(true);
 
-      // Mock Sunday (Jan 7, 2024 is a Sunday)
       jest.setSystemTime(new Date('2024-01-07T12:00:00'));
       expect(isWeekend(null)).toBe(true);
 
-      // Mock Monday (Jan 8, 2024 is a Monday)
       jest.setSystemTime(new Date('2024-01-08T12:00:00'));
       expect(isWeekend(null)).toBe(false);
     });
