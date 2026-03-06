@@ -4,6 +4,8 @@ import { routesWithNoService, isValidGuess, updateGuessStatuses, flattenedTodays
 import { addStatsForCompletedGame } from '../utils/stats';
 import { ATTEMPTS, ALERT_TIME_MS } from '../utils/constants';
 
+type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+
 jest.mock('../utils/answerValidations', () => ({
   routesWithNoService: jest.fn(() => []),
   isValidGuess: jest.fn(() => true),
@@ -12,21 +14,21 @@ jest.mock('../utils/answerValidations', () => ({
 }));
 
 jest.mock('../utils/stats', () => ({
-  addStatsForCompletedGame: jest.fn((stats, count) => ({ ...stats, totalGames: stats.totalGames + 1 })),
+  addStatsForCompletedGame: jest.fn((stats: any, count: number) => ({ ...stats, totalGames: stats.totalGames + 1 })),
 }));
 
 describe('useKeyboard', () => {
-  let mockCurrentGuess = [];
-  let mockGuesses = [];
-  let mockToastStack = [];
-  let mockStats = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
+  let mockCurrentGuess: string[] = [];
+  let mockGuesses: string[][] = [];
+  let mockToastStack: any[] = [];
+  let mockStats: any = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
   
-  const mockSetCurrentGuess = jest.fn((fn) => {
+  const mockSetCurrentGuess = jest.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockCurrentGuess = fn(mockCurrentGuess);
     }
   });
-  const mockSetGuesses = jest.fn((fn) => {
+  const mockSetGuesses = jest.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockGuesses = fn(mockGuesses);
     } else {
@@ -38,7 +40,7 @@ describe('useKeyboard', () => {
   const mockSetIsSolutionsOpen = jest.fn();
   const mockSetIsNotEnoughRoutes = jest.fn();
   const mockSetIsGuessInvalid = jest.fn();
-  const mockSetToastStack = jest.fn((fn) => {
+  const mockSetToastStack = jest.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockToastStack = fn(mockToastStack);
     } else {
@@ -60,8 +62,8 @@ describe('useKeyboard', () => {
     setGuesses: mockSetGuesses,
     currentGuess: mockCurrentGuess,
     setCurrentGuess: mockSetCurrentGuess,
-    practiceMode: null,
-    effectivePracticeGameIndex: null,
+    practiceMode: null as PracticeMode,
+    effectivePracticeGameIndex: null as number | null,
     setIsGameWon: mockSetIsGameWon,
     setIsGameLost: mockSetIsGameLost,
     setIsSolutionsOpen: mockSetIsSolutionsOpen,
@@ -69,15 +71,15 @@ describe('useKeyboard', () => {
     setIsGuessInvalid: mockSetIsGuessInvalid,
     toastStack: mockToastStack,
     setToastStack: mockSetToastStack,
-    correctRoutes: [],
+    correctRoutes: [] as string[],
     setCorrectRoutes: mockSetCorrectRoutes,
-    similarRoutes: [],
+    similarRoutes: [] as string[],
     setSimilarRoutes: mockSetSimilarRoutes,
-    presentRoutes: [],
+    presentRoutes: [] as string[],
     setPresentRoutes: mockSetPresentRoutes,
-    absentRoutes: [],
+    absentRoutes: [] as string[],
     setAbsentRoutes: mockSetAbsentRoutes,
-    similarRoutesIndexes: {},
+    similarRoutesIndexes: {} as Record<string, number[]>,
     setSimilarRoutesIndexes: mockSetSimilarRoutesIndexes,
     stats: mockStats,
     setStats: mockSetStats,
@@ -91,25 +93,24 @@ describe('useKeyboard', () => {
     mockGuesses = [];
     mockToastStack = [];
     mockStats = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
-    routesWithNoService.mockReturnValue([]);
-    isValidGuess.mockReturnValue(true);
-    flattenedTodaysTrip.mockReturnValue('1-2-3');
-    // Reset mock implementations
-    mockSetCurrentGuess.mockImplementation((fn) => {
+    (routesWithNoService as jest.Mock).mockReturnValue([]);
+    (isValidGuess as jest.Mock).mockReturnValue(true);
+    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    mockSetCurrentGuess.mockImplementation((fn: any) => {
       if (typeof fn === 'function') {
         mockCurrentGuess = fn(mockCurrentGuess);
       } else {
         mockCurrentGuess = fn;
       }
     });
-    mockSetGuesses.mockImplementation((fn) => {
+    mockSetGuesses.mockImplementation((fn: any) => {
       if (typeof fn === 'function') {
         mockGuesses = fn(mockGuesses);
       } else {
         mockGuesses = fn;
       }
     });
-    mockSetToastStack.mockImplementation((fn) => {
+    mockSetToastStack.mockImplementation((fn: any) => {
       if (typeof fn === 'function') {
         mockToastStack = fn(mockToastStack);
       } else {
@@ -167,7 +168,7 @@ describe('useKeyboard', () => {
         result.current.onChar('1');
         result.current.onChar('2');
         result.current.onChar('3');
-        result.current.onChar('4'); // Should not add
+        result.current.onChar('4');
       });
 
       const lastCall = mockSetCurrentGuess.mock.calls[mockSetCurrentGuess.mock.calls.length - 1][0];
@@ -189,7 +190,7 @@ describe('useKeyboard', () => {
     });
 
     it('does not add routes with no service', () => {
-      routesWithNoService.mockReturnValue(['B', 'W']);
+      (routesWithNoService as jest.Mock).mockReturnValue(['B', 'W']);
       const { result } = renderHook(() => useKeyboard({ ...defaultProps, practiceMode: 'weekend' }));
       
       act(() => {
@@ -272,7 +273,7 @@ describe('useKeyboard', () => {
     });
 
     it('shows error toast when guess is invalid', () => {
-      isValidGuess.mockReturnValue(false);
+      (isValidGuess as jest.Mock).mockReturnValue(false);
       mockCurrentGuess = ['1', '2', '3'];
       const { result } = renderHook(() => useKeyboard({
         ...getDefaultProps(),
@@ -303,7 +304,7 @@ describe('useKeyboard', () => {
         jest.advanceTimersByTime(ALERT_TIME_MS);
       });
 
-      expect(mockSetToastStack).toHaveBeenCalledTimes(2); // Once to add, once to hide
+      expect(mockSetToastStack).toHaveBeenCalledTimes(2);
       jest.useRealTimers();
     });
 
@@ -315,10 +316,9 @@ describe('useKeyboard', () => {
       
       act(() => {
         result.current.onEnter();
-        result.current.onEnter(); // Rapid second press
+        result.current.onEnter();
       });
 
-      // Should only show one toast
       expect(mockSetIsNotEnoughRoutes).toHaveBeenCalledTimes(1);
     });
 
@@ -340,7 +340,7 @@ describe('useKeyboard', () => {
     });
 
     it('wins game when guess matches solution', () => {
-      flattenedTodaysTrip.mockReturnValue('1-2-3');
+      (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
       mockCurrentGuess = ['1', '2', '3'];
       mockGuesses = [];
       const { result } = renderHook(() => useKeyboard({
@@ -359,7 +359,7 @@ describe('useKeyboard', () => {
     });
 
     it('does not update stats in practice mode', () => {
-      flattenedTodaysTrip.mockReturnValue('1-2-3');
+      (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
       mockCurrentGuess = ['1', '2', '3'];
       mockGuesses = [];
       const { result } = renderHook(() => useKeyboard({
@@ -443,4 +443,3 @@ describe('useKeyboard', () => {
     });
   });
 });
-

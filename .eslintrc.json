@@ -20,7 +20,9 @@
         {
             "files": [
                 "**/*.test.js",
-                "**/*.test.jsx"
+                "**/*.test.jsx",
+                "**/*.test.ts",
+                "**/*.test.tsx"
             ],
             "env": {
                 "jest": true
