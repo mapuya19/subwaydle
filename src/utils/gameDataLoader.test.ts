@@ -10,21 +10,28 @@ import {
   ACCESSIBLE_GAME,
 } from './gameDataLoader';
 
-type RouteCombo = string[] | string;
+import type { Solution } from './gameDataLoader';
 
-interface Solution {
-  origin?: string;
-  destination?: string;
-  first_transfer_arrival?: string;
-  first_transfer_departure?: string;
-  second_transfer_arrival?: string;
-  second_transfer_departure?: string;
-}
+type RouteCombo = string[] | string;
 
 const mockAnswers: RouteCombo[] = [['A', 'B', 'C'], ['1', '2', '3']];
 const mockSolutions: Record<string, Solution> = {
-  'A-B-C': { origin: 'R01', destination: 'R02' },
-  '1-2-3': { origin: 'R10', destination: 'R20' },
+  'A-B-C': {
+    origin: 'R01',
+    first_transfer_arrival: '',
+    first_transfer_departure: '',
+    second_transfer_arrival: '',
+    second_transfer_departure: '',
+    destination: 'R02'
+  },
+  '1-2-3': {
+    origin: 'R10',
+    first_transfer_arrival: '',
+    first_transfer_departure: '',
+    second_transfer_arrival: '',
+    second_transfer_departure: '',
+    destination: 'R20'
+  },
 };
 const mockRoutings: Record<string, string[]> = { 'A': [], 'B': [], 'C': [], '1': [], '2': [], '3': [] };
 
@@ -63,14 +70,29 @@ describe('gameDataLoader', () => {
     it('filters out invalid Staten Island route combinations', () => {
       const answers: RouteCombo[] = [['A', 'B', 'C'], ['SI', 'C', 'R'], ['1', '4', 'SI']];
       const solutions: Record<string, Solution> = {
-        'A-B-C': { origin: 'R01' },
+        'A-B-C': {
+          origin: 'R01',
+          first_transfer_arrival: '',
+          first_transfer_departure: '',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: 'R02'
+        },
         'SI-C-R': {
+          origin: '',
           first_transfer_arrival: 'S14',
           first_transfer_departure: '142',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: ''
         },
         '1-4-SI': {
+          origin: '',
           first_transfer_arrival: '420',
           first_transfer_departure: 'S31',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: ''
         },
       };
 
@@ -90,7 +112,16 @@ describe('gameDataLoader', () => {
 
     it('handles solutions with no SI routes', () => {
       const answers: RouteCombo[] = [['A', 'B', 'C']];
-      const solutions: Record<string, Solution> = { 'A-B-C': { origin: 'R01' } };
+      const solutions: Record<string, Solution> = {
+        'A-B-C': {
+          origin: 'R01',
+          first_transfer_arrival: '',
+          first_transfer_departure: '',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: 'R02'
+        }
+      };
       const result = removeDisconnectedRouteCombos(answers, solutions);
       expect(result.answers).toEqual([['A', 'B', 'C']]);
       expect(result.solutions).toHaveProperty('A-B-C');
@@ -98,7 +129,24 @@ describe('gameDataLoader', () => {
 
     it('handles array and string combo formats', () => {
       const answers: RouteCombo[] = [['A', 'B'], 'C-D'];
-      const solutions: Record<string, Solution> = { 'A-B': { origin: 'R01' }, 'C-D': { origin: 'R02' } };
+      const solutions: Record<string, Solution> = {
+        'A-B': {
+          origin: 'R01',
+          first_transfer_arrival: '',
+          first_transfer_departure: '',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: 'R02'
+        },
+        'C-D': {
+          origin: 'R03',
+          first_transfer_arrival: '',
+          first_transfer_departure: '',
+          second_transfer_arrival: '',
+          second_transfer_departure: '',
+          destination: 'R04'
+        }
+      };
       const result = removeDisconnectedRouteCombos(answers, solutions);
       expect(result.answers).toEqual([['A', 'B'], ['C', 'D']]);
     });

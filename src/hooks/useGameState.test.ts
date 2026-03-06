@@ -154,10 +154,10 @@ describe('useGameState', () => {
     const { result } = renderHook(() => useGameState(null, 0));
     
     act(() => {
-      result.current.setToastStack([{ id: 1, message: 'Test' }]);
+      result.current.setToastStack([{ id: '1', message: 'Test' }]);
     });
     
-    expect(result.current.toastStack).toEqual([{ id: 1, message: 'Test' }]);
+    expect(result.current.toastStack).toEqual([{ id: '1', message: 'Test' }]);
   });
 
   it('does not save to localStorage when state is empty', () => {

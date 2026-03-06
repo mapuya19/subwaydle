@@ -31,7 +31,7 @@ const comboIncludesRoute = (combo: string[] | string, routeId: string): boolean 
   return routes.includes(routeId);
 };
 
-interface Solution {
+export interface Solution {
   origin: string;
   first_transfer_arrival: string;
   first_transfer_departure: string;
@@ -77,7 +77,7 @@ const hasInvalidSIRoute = (comboKey: string, solution: SolutionOrArray | null): 
   return !candidateSolutions.some(isValidSISolution);
 };
 
-export const removeDisconnectedRouteCombos = (answers: string[][] = [], solutions: Record<string, Solution> = {}): { answers: string[][]; solutions: Record<string, Solution> } => {
+export const removeDisconnectedRouteCombos = (answers: (string[] | string)[] = [], solutions: Record<string, Solution> = {}): { answers: string[][]; solutions: Record<string, Solution> } => {
   const filteredSolutions = Object.entries(solutions).reduce((acc, [key, value]) => {
     if (!hasInvalidSIRoute(key, value)) {
       acc[key] = value;
