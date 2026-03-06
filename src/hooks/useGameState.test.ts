@@ -3,6 +3,8 @@ import { useGameState } from './useGameState';
 import { saveGameStateToLocalStorage } from '../utils/localStorage';
 import * as answerValidations from '../utils/answerValidations';
 
+type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+
 jest.mock('../utils/localStorage', () => ({
   saveGameStateToLocalStorage: jest.fn(() => true),
 }));
@@ -14,7 +16,7 @@ jest.mock('../utils/answerValidations', () => ({
 describe('useGameState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    answerValidations.flattenedTodaysTrip.mockReturnValue('1-2-3');
+    (answerValidations.flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
   });
 
   it('initializes with default state', () => {
@@ -161,15 +163,12 @@ describe('useGameState', () => {
   it('does not save to localStorage when state is empty', () => {
     const { result } = renderHook(() => useGameState(null, 0));
     
-    // Initial render should not trigger save
     expect(saveGameStateToLocalStorage).not.toHaveBeenCalled();
     
     act(() => {
       result.current.setIsNotEnoughRoutes(true);
     });
     
-    // Setting flags without guesses/game end should not save
     expect(saveGameStateToLocalStorage).not.toHaveBeenCalled();
   });
 });
-

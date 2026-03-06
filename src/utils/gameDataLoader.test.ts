@@ -10,16 +10,25 @@ import {
   ACCESSIBLE_GAME,
 } from './gameDataLoader';
 
-// Mock the dynamic imports
-const mockAnswers = [['A', 'B', 'C'], ['1', '2', '3']];
-const mockSolutions = {
+type RouteCombo = string[] | string;
+
+interface Solution {
+  origin?: string;
+  destination?: string;
+  first_transfer_arrival?: string;
+  first_transfer_departure?: string;
+  second_transfer_arrival?: string;
+  second_transfer_departure?: string;
+}
+
+const mockAnswers: RouteCombo[] = [['A', 'B', 'C'], ['1', '2', '3']];
+const mockSolutions: Record<string, Solution> = {
   'A-B-C': { origin: 'R01', destination: 'R02' },
   '1-2-3': { origin: 'R10', destination: 'R20' },
 };
-const mockRoutings = { 'A': [], 'B': [], 'C': [], '1': [], '2': [], '3': [] };
+const mockRoutings: Record<string, string[]> = { 'A': [], 'B': [], 'C': [], '1': [], '2': [], '3': [] };
 
-// Mock dynamic imports using a factory function that ensures proper structure
-const createMockModule = (data) => ({ __esModule: true, default: data });
+const createMockModule = (data: any) => ({ __esModule: true, default: data });
 
 jest.mock('../data/weekday/answers.json', () => createMockModule(mockAnswers), { virtual: true });
 jest.mock('../data/weekday/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
@@ -37,6 +46,8 @@ jest.mock('../data/accessible/answers.json', () => createMockModule(mockAnswers)
 jest.mock('../data/accessible/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
 jest.mock('../data/accessible/routings.json', () => createMockModule(mockRoutings), { virtual: true });
 
+type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+
 describe('gameDataLoader', () => {
   beforeEach(() => {
     clearGameDataCache();
@@ -50,8 +61,8 @@ describe('gameDataLoader', () => {
 
   describe('removeDisconnectedRouteCombos', () => {
     it('filters out invalid Staten Island route combinations', () => {
-      const answers = [['A', 'B', 'C'], ['SI', 'C', 'R'], ['1', '4', 'SI']];
-      const solutions = {
+      const answers: RouteCombo[] = [['A', 'B', 'C'], ['SI', 'C', 'R'], ['1', '4', 'SI']];
+      const solutions: Record<string, Solution> = {
         'A-B-C': { origin: 'R01' },
         'SI-C-R': {
           first_transfer_arrival: 'S14',
@@ -78,16 +89,16 @@ describe('gameDataLoader', () => {
     });
 
     it('handles solutions with no SI routes', () => {
-      const answers = [['A', 'B', 'C']];
-      const solutions = { 'A-B-C': { origin: 'R01' } };
+      const answers: RouteCombo[] = [['A', 'B', 'C']];
+      const solutions: Record<string, Solution> = { 'A-B-C': { origin: 'R01' } };
       const result = removeDisconnectedRouteCombos(answers, solutions);
       expect(result.answers).toEqual([['A', 'B', 'C']]);
       expect(result.solutions).toHaveProperty('A-B-C');
     });
 
     it('handles array and string combo formats', () => {
-      const answers = [['A', 'B'], 'C-D'];
-      const solutions = { 'A-B': { origin: 'R01' }, 'C-D': { origin: 'R02' } };
+      const answers: RouteCombo[] = [['A', 'B'], 'C-D'];
+      const solutions: Record<string, Solution> = { 'A-B': { origin: 'R01' }, 'C-D': { origin: 'R02' } };
       const result = removeDisconnectedRouteCombos(answers, solutions);
       expect(result.answers).toEqual([['A', 'B'], ['C', 'D']]);
     });
@@ -103,19 +114,14 @@ describe('gameDataLoader', () => {
     });
 
     it('calculates game index from epoch', () => {
-      // Mock date: January 30, 2022 (1 day after epoch of January 29, 2022)
-      // Epoch is January 29, 2022 00:00:00
       jest.setSystemTime(new Date('2022-01-30T12:00:00'));
       const index = todayGameIndex();
-      // Should be 1 day after epoch
       expect(index).toBe(1);
     });
 
     it('handles dates before epoch', () => {
-      // Mock date: January 28, 2022 (1 day before epoch of January 29, 2022)
       jest.setSystemTime(new Date('2022-01-28T12:00:00'));
       const index = todayGameIndex();
-      // Should be negative (before epoch)
       expect(index).toBe(-1);
     });
 
@@ -159,7 +165,7 @@ describe('gameDataLoader', () => {
     it('caches loaded data', async () => {
       const data1 = await loadGameData();
       const data2 = await loadGameData();
-      expect(data1).toBe(data2); // Same reference
+      expect(data1).toBe(data2);
       expect(data1.answers).toBe(data2.answers);
     });
 
@@ -178,17 +184,13 @@ describe('gameDataLoader', () => {
       
       const data1 = await promise1;
       const data2 = await promise2;
-      // Both should resolve with the same data
       expect(data1).toBe(data2);
       expect(data1.currentMode).toBe('weekday');
     });
 
     it('handles loading errors gracefully', async () => {
-      // This test verifies that loading completes without throwing
-      // even if some data is empty or missing expected properties
       clearGameDataCache();
       
-      // Load should succeed with mock data
       const data = await loadGameData('weekday');
       expect(data).toBeDefined();
       expect(data.answers).toBeDefined();
@@ -203,7 +205,7 @@ describe('gameDataLoader', () => {
     it('throws error when data is loading', async () => {
       const loadPromise = loadGameData();
       expect(() => getGameData()).toThrow('Game data is currently loading');
-      await loadPromise; // Clean up
+      await loadPromise;
     });
 
     it('returns data after loading', async () => {
@@ -252,7 +254,6 @@ describe('gameDataLoader', () => {
 
     it('handles null practice mode (auto-detect)', async () => {
       await loadGameData();
-      // Should check current mode based on day
       expect(isGameDataLoadedForMode(null)).toBe(true);
     });
   });
@@ -271,7 +272,7 @@ describe('gameDataLoader', () => {
       const loadPromise = loadGameData();
       clearGameDataCache();
       expect(isGameDataLoaded()).toBe(false);
-      await loadPromise; // Clean up
+      await loadPromise;
     });
   });
 
