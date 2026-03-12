@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import {
   saveGameStateToLocalStorage,
   loadGameStateFromLocalStorage,
@@ -93,7 +94,7 @@ describe('localStorage utilities', () => {
     ((global.localStorage as unknown) as LocalStorageMock).shouldThrow = false;
     ((window.localStorage as unknown) as LocalStorageMock).clear();
     ((window.localStorage as unknown) as LocalStorageMock).shouldThrow = false;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -124,7 +125,7 @@ describe('localStorage utilities', () => {
     });
 
     it('handles storage errors gracefully', () => {
-      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+      const setItemSpy = vi.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
         throw new Error('Storage quota exceeded');
       });
       
@@ -168,7 +169,7 @@ describe('localStorage utilities', () => {
     });
 
     it('handles storage errors gracefully', () => {
-      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+      const setItemSpy = vi.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
         throw new Error('Storage quota exceeded');
       });
       
@@ -206,7 +207,7 @@ describe('localStorage utilities', () => {
     });
 
     it('handles storage errors gracefully', () => {
-      const setItemSpy = jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
+      const setItemSpy = vi.spyOn(global.localStorage, 'setItem').mockImplementation(() => {
         throw new Error('Storage quota exceeded');
       });
       
@@ -256,7 +257,7 @@ describe('localStorage utilities', () => {
   describe('localStorage unavailable scenarios', () => {
     it('handles missing localStorage gracefully', () => {
       const originalLocalStorage = global.localStorage;
-      delete global.localStorage;
+      delete (global as any).localStorage;
       delete (window as any).localStorage;
 
       const gameState: GameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };

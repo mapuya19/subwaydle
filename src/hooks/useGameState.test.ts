@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useGameState } from './useGameState';
 import { saveGameStateToLocalStorage } from '../utils/localStorage';
@@ -5,18 +6,18 @@ import * as answerValidations from '../utils/answerValidations';
 
 type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
-jest.mock('../utils/localStorage', () => ({
-  saveGameStateToLocalStorage: jest.fn(() => true),
+vi.mock('../utils/localStorage', () => ({
+  saveGameStateToLocalStorage: vi.fn(() => true),
 }));
 
-jest.mock('../utils/answerValidations', () => ({
-  flattenedTodaysTrip: jest.fn(),
+vi.mock('../utils/answerValidations', () => ({
+  flattenedTodaysTrip: vi.fn(),
 }));
 
 describe('useGameState', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (answerValidations.flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    vi.clearAllMocks();
+    (answerValidations.flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
   });
 
   it('initializes with default state', () => {

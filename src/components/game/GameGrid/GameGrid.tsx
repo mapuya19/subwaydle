@@ -1,17 +1,34 @@
 import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import { Grid } from 'semantic-ui-react';
 import CompletedRow from '../CompletedRow/CompletedRow';
 import CurrentRow from '../CurrentRow/CurrentRow';
 import EmptyRow from '../EmptyRow/EmptyRow';
 import { useDarkMode } from '../../../contexts';
+import { PracticeMode } from '../../../utils/constants';
 
 import './GameGrid.scss';
 
-const GameGrid = (props) => {
-  const { currentGuess, guesses, attempts, inPlay, practiceMode, practiceGameIndex, shouldShake } = props;
+interface GameGridProps {
+  currentGuess: string[];
+  guesses: string[][];
+  attempts: number;
+  inPlay: boolean;
+  practiceMode?: PracticeMode | null;
+  practiceGameIndex?: number | null;
+  shouldShake?: boolean;
+}
+
+const GameGrid = ({
+  currentGuess,
+  guesses,
+  attempts,
+  inPlay,
+  practiceMode,
+  practiceGameIndex,
+  shouldShake,
+}: GameGridProps) => {
   const isDarkMode = useDarkMode(practiceMode);
-  const emptyRows = [...Array(inPlay ? (attempts - 1) : attempts).keys()];
+  const emptyRows = [...Array(inPlay ? attempts - 1 : attempts).keys()];
   const [shakeRowIndex, setShakeRowIndex] = useState(-1);
 
   useEffect(() => {
@@ -30,7 +47,7 @@ const GameGrid = (props) => {
           emptyRows.pop();
           return (
             <CompletedRow id={i} guess={g} key={i} practiceMode={practiceMode} practiceGameIndex={practiceGameIndex} />
-          )
+          );
         })
       }
       {
@@ -46,16 +63,6 @@ const GameGrid = (props) => {
       }
     </Grid>
   );
-}
-
-GameGrid.propTypes = {
-  currentGuess: PropTypes.arrayOf(PropTypes.string).isRequired,
-  guesses: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-  attempts: PropTypes.number.isRequired,
-  inPlay: PropTypes.bool.isRequired,
-  practiceMode: PropTypes.string,
-  practiceGameIndex: PropTypes.number,
-  shouldShake: PropTypes.bool,
 };
 
 export default GameGrid;

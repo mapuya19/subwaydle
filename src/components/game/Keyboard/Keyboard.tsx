@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { Grid, Button } from 'semantic-ui-react';
 import Key from './Key';
 import routes from '../../../data/routes.json';
@@ -7,23 +6,38 @@ import { useDarkMode } from '../../../contexts';
 
 import './Keyboard.scss';
 
-const Keyboard = (props) => {
-  const {
-    noService,
-    onChar, onDelete, onEnter,
-    correctRoutes, similarRoutes, presentRoutes, absentRoutes
-  } = props;
+interface KeyboardProps {
+  noService: string[];
+  onChar: (key: string) => void;
+  onDelete: () => void;
+  onEnter: () => void;
+  correctRoutes: string[];
+  similarRoutes: string[];
+  presentRoutes: string[];
+  absentRoutes: string[];
+}
+
+const Keyboard = ({
+  noService,
+  onChar,
+  onDelete,
+  onEnter,
+  correctRoutes,
+  similarRoutes,
+  presentRoutes,
+  absentRoutes,
+}: KeyboardProps) => {
   const isDarkMode = useDarkMode();
 
   useEffect(() => {
-    const listener = (e) => {
+    const listener = (e: KeyboardEvent) => {
       if (e.code === 'Enter') {
         onEnter();
       } else if (e.code === 'Backspace') {
         onDelete();
       } else {
-        const key = e.key.toUpperCase()
-        if (key.length === 1 && routes[key]) {
+        const key = e.key.toUpperCase();
+        if (key.length === 1 && (routes as Record<string, unknown>)[key]) {
           onChar(key);
         } else if (key === 'S') {
           onChar('GS');
@@ -33,18 +47,17 @@ const Keyboard = (props) => {
           onChar('SI');
         }
       }
-    }
-    window.addEventListener('keyup', listener)
+    };
+    window.addEventListener('keyup', listener);
     return () => {
-      window.removeEventListener('keyup', listener)
-    }
-  }, [onEnter, onDelete, onChar])
+      window.removeEventListener('keyup', listener);
+    };
+  }, [onEnter, onDelete, onChar]);
 
-  const renderKey = (routeId) => (
+  const renderKey = (routeId: string) => (
     <Key
       id={routeId}
       key={routeId}
-      isDarkMode={isDarkMode}
       onClick={onChar}
       disabled={noService.includes(routeId)}
       isCorrect={correctRoutes.includes(routeId)}
@@ -80,17 +93,6 @@ const Keyboard = (props) => {
       </Grid.Row>
     </Grid>
   );
-}
-
-Keyboard.propTypes = {
-  noService: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onChar: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onEnter: PropTypes.func.isRequired,
-  correctRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  similarRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  presentRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  absentRoutes: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 export default Keyboard;

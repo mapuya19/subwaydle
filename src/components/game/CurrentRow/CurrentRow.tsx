@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { Grid, Segment } from 'semantic-ui-react';
 import TrainBullet from '../../ui/TrainBullet/TrainBullet';
 
-const CurrentRow = (props) => {
-  const { currentGuess, shouldShake } = props;
+interface CurrentRowProps {
+  currentGuess: string[];
+  shouldShake: boolean;
+}
+
+const CurrentRow = ({ currentGuess, shouldShake }: CurrentRowProps) => {
   const emptyGuesses = [...Array(3).keys()];
   const [bouncingIndex, setBouncingIndex] = useState(-1);
 
@@ -41,6 +45,6 @@ const CurrentRow = (props) => {
       }
     </Grid.Row>
   );
-}
+};
 
 export default CurrentRow;

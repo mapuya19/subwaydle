@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useKeyboard } from './useKeyboard';
 import { routesWithNoService, isValidGuess, updateGuessStatuses, flattenedTodaysTrip } from '../utils/answerValidations';
@@ -6,15 +7,15 @@ import { ATTEMPTS, ALERT_TIME_MS } from '../utils/constants';
 
 type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
-jest.mock('../utils/answerValidations', () => ({
-  routesWithNoService: jest.fn(() => []),
-  isValidGuess: jest.fn(() => true),
-  updateGuessStatuses: jest.fn(),
-  flattenedTodaysTrip: jest.fn(() => '1-2-3'),
+vi.mock('../utils/answerValidations', () => ({
+  routesWithNoService: vi.fn(() => []),
+  isValidGuess: vi.fn(() => true),
+  updateGuessStatuses: vi.fn(),
+  flattenedTodaysTrip: vi.fn(() => '1-2-3'),
 }));
 
-jest.mock('../utils/stats', () => ({
-  addStatsForCompletedGame: jest.fn((stats: any, count: number) => ({ ...stats, totalGames: stats.totalGames + 1 })),
+vi.mock('../utils/stats', () => ({
+  addStatsForCompletedGame: vi.fn((stats: any, count: number) => ({ ...stats, totalGames: stats.totalGames + 1 })),
 }));
 
 describe('useKeyboard', () => {
@@ -23,36 +24,36 @@ describe('useKeyboard', () => {
   let mockToastStack: any[] = [];
   let mockStats: any = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
   
-  const mockSetCurrentGuess = jest.fn((fn: any) => {
+  const mockSetCurrentGuess = vi.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockCurrentGuess = fn(mockCurrentGuess);
     }
   });
-  const mockSetGuesses = jest.fn((fn: any) => {
+  const mockSetGuesses = vi.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockGuesses = fn(mockGuesses);
     } else {
       mockGuesses = fn;
     }
   });
-  const mockSetIsGameWon = jest.fn();
-  const mockSetIsGameLost = jest.fn();
-  const mockSetIsSolutionsOpen = jest.fn();
-  const mockSetIsNotEnoughRoutes = jest.fn();
-  const mockSetIsGuessInvalid = jest.fn();
-  const mockSetToastStack = jest.fn((fn: any) => {
+  const mockSetIsGameWon = vi.fn();
+  const mockSetIsGameLost = vi.fn();
+  const mockSetIsSolutionsOpen = vi.fn();
+  const mockSetIsNotEnoughRoutes = vi.fn();
+  const mockSetIsGuessInvalid = vi.fn();
+  const mockSetToastStack = vi.fn((fn: any) => {
     if (typeof fn === 'function') {
       mockToastStack = fn(mockToastStack);
     } else {
       mockToastStack = fn;
     }
   });
-  const mockSetCorrectRoutes = jest.fn();
-  const mockSetSimilarRoutes = jest.fn();
-  const mockSetPresentRoutes = jest.fn();
-  const mockSetAbsentRoutes = jest.fn();
-  const mockSetSimilarRoutesIndexes = jest.fn();
-  const mockSetStats = jest.fn();
+  const mockSetCorrectRoutes = vi.fn();
+  const mockSetSimilarRoutes = vi.fn();
+  const mockSetPresentRoutes = vi.fn();
+  const mockSetAbsentRoutes = vi.fn();
+  const mockSetSimilarRoutesIndexes = vi.fn();
+  const mockSetStats = vi.fn();
 
   const getDefaultProps = () => ({
     isStatsOpen: false,
@@ -88,14 +89,14 @@ describe('useKeyboard', () => {
   const defaultProps = getDefaultProps();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockCurrentGuess = [];
     mockGuesses = [];
     mockToastStack = [];
     mockStats = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
-    (routesWithNoService as jest.Mock).mockReturnValue([]);
-    (isValidGuess as jest.Mock).mockReturnValue(true);
-    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    (routesWithNoService as ReturnType<typeof vi.fn>).mockReturnValue([]);
+    (isValidGuess as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
     mockSetCurrentGuess.mockImplementation((fn: any) => {
       if (typeof fn === 'function') {
         mockCurrentGuess = fn(mockCurrentGuess);
@@ -120,12 +121,12 @@ describe('useKeyboard', () => {
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   beforeAll(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   describe('onChar', () => {
@@ -190,7 +191,7 @@ describe('useKeyboard', () => {
     });
 
     it('does not add routes with no service', () => {
-      (routesWithNoService as jest.Mock).mockReturnValue(['B', 'W']);
+      (routesWithNoService as ReturnType<typeof vi.fn>).mockReturnValue(['B', 'W']);
       const { result } = renderHook(() => useKeyboard({ ...defaultProps, practiceMode: 'weekend' }));
       
       act(() => {
@@ -273,7 +274,7 @@ describe('useKeyboard', () => {
     });
 
     it('shows error toast when guess is invalid', () => {
-      (isValidGuess as jest.Mock).mockReturnValue(false);
+      (isValidGuess as ReturnType<typeof vi.fn>).mockReturnValue(false);
       mockCurrentGuess = ['1', '2', '3'];
       const { result } = renderHook(() => useKeyboard({
         ...getDefaultProps(),
@@ -289,7 +290,7 @@ describe('useKeyboard', () => {
     });
 
     it('hides toast after timeout', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       mockCurrentGuess = ['1', '2'];
       const { result } = renderHook(() => useKeyboard({
         ...getDefaultProps(),
@@ -301,11 +302,11 @@ describe('useKeyboard', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(ALERT_TIME_MS);
+        vi.advanceTimersByTime(ALERT_TIME_MS);
       });
 
       expect(mockSetToastStack).toHaveBeenCalledTimes(2);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('prevents duplicate toasts from rapid Enter presses', () => {
@@ -340,7 +341,7 @@ describe('useKeyboard', () => {
     });
 
     it('wins game when guess matches solution', () => {
-      (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+      (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
       mockCurrentGuess = ['1', '2', '3'];
       mockGuesses = [];
       const { result } = renderHook(() => useKeyboard({
@@ -359,7 +360,7 @@ describe('useKeyboard', () => {
     });
 
     it('does not update stats in practice mode', () => {
-      (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+      (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
       mockCurrentGuess = ['1', '2', '3'];
       mockGuesses = [];
       const { result } = renderHook(() => useKeyboard({

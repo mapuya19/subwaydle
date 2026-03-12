@@ -1,12 +1,15 @@
-import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Segment, Icon, Label } from 'semantic-ui-react';
 import TrainBullet from '../../ui/TrainBullet/TrainBullet';
 import { useSettings, useDarkMode } from '../../../contexts';
 
 import './AboutModal.scss';
 
-const AboutModal = (props) => {
-  const { open, handleClose } = props;
+interface AboutModalProps {
+  open: boolean;
+  handleClose: () => void;
+}
+
+const AboutModal = ({ open, handleClose }: AboutModalProps) => {
   const { settings } = useSettings();
   const isDarkMode = useDarkMode();
   return (
@@ -14,7 +17,7 @@ const AboutModal = (props) => {
       <Modal.Header>How to Play</Modal.Header>
       <Modal.Content scrolling>
         <Header as='h4'>About This Version</Header>
-        <p><strong>Subwaydle Remastered</strong> is an enhanced fork of the original <a href="https://www.subwaydle.com" target="_blank" rel="noreferrer">Subwaydle</a>. 
+        <p><strong>Subwaydle Remastered</strong> is an enhanced fork of the original <a href="https://www.subwaydle.com" target="_blank" rel="noreferrer">Subwaydle</a>.
         This version includes several improvements, such as:</p>
         <ul>
           <li><strong>Route filtering logic</strong> that prioritizes direct, efficient transit paths. </li>
@@ -176,7 +179,7 @@ const AboutModal = (props) => {
           You can switch from a local line to an express line then back to the same local line, but you can't switch from an express line to a local line back to the same express line).</p>
         <p><strong>Transfers are allowed to/from St George station</strong> via <strong>South Ferry</strong>, <strong>Whitehall St–South Ferry</strong> or <strong>Bowling Green stations</strong> (using the Staten Island Ferry). Transfers are also allowed between stations with <strong>free out-of-system transfers</strong>.
           It is assumed that all stations allow transfer in all directions, even when they're not physically possible in real life (limitation due to this data is not being publicly available).</p>
-        <p>Routing for each train line is based on <strong>midday schedule</strong> (i.e. no peak-direction express, no peak-only branches, no 
+        <p>Routing for each train line is based on <strong>midday schedule</strong> (i.e. no peak-direction express, no peak-only branches, no
           Z, B goes to Bedford Park Blvd). <strong>Weekend puzzles are based on regularly-scheduled weekend routings.</strong></p>
 
         <Header as='h4'>Tips</Header>
@@ -200,11 +203,6 @@ const AboutModal = (props) => {
       </Modal.Content>
     </Modal>
   );
-}
-
-AboutModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  handleClose: PropTypes.func.isRequired,
 };
 
 export default AboutModal;

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { Modal } from 'semantic-ui-react';
 import Stats from '../Stats/Stats';
 import { useDarkMode } from '../../../contexts';
@@ -6,8 +5,12 @@ import { useStats } from '../../../contexts/StatsContext';
 
 import './StatsModal.scss';
 
-const StatsModal = (props) => {
-  const { open, handleClose } = props;
+interface StatsModalProps {
+  open: boolean;
+  handleClose: () => void;
+}
+
+const StatsModal = ({ open, handleClose }: StatsModalProps) => {
   const { stats } = useStats();
   const isDarkMode = useDarkMode();
   return (
@@ -17,11 +20,6 @@ const StatsModal = (props) => {
       </Modal.Content>
     </Modal>
   );
-}
-
-StatsModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  handleClose: PropTypes.func.isRequired,
 };
 
 export default StatsModal;

@@ -1,73 +1,77 @@
+import { vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { SettingsProvider } from './contexts/SettingsContext';
+import { StatsProvider } from './contexts/StatsContext';
+import App from './App';
 
-jest.mock('./components/game', () => ({
+vi.mock('./components/game', () => ({
   __esModule: true,
   GameGrid: () => <div className="game-grid" />,
   Keyboard: () => <div className="keyboard" />,
 }));
 
-jest.mock('./components/modals/AboutModal', () => ({ __esModule: true, default: () => null }));
-jest.mock('./components/modals/SolutionModal', () => ({ __esModule: true, default: () => null }));
-jest.mock('./components/stats/StatsModal', () => ({ __esModule: true, default: () => null }));
-jest.mock('./components/modals/SettingsModal', () => ({ __esModule: true, default: () => null }));
-jest.mock('./components/modals/PracticeModal', () => ({ __esModule: true, default: () => null }));
+vi.mock('./components/modals/AboutModal', () => ({ __esModule: true, default: () => null }));
+vi.mock('./components/modals/SolutionModal', () => ({ __esModule: true, default: () => null }));
+vi.mock('./components/stats/StatsModal', () => ({ __esModule: true, default: () => null }));
+vi.mock('./components/modals/SettingsModal', () => ({ __esModule: true, default: () => null }));
+vi.mock('./components/modals/PracticeModal', () => ({ __esModule: true, default: () => null }));
 
-jest.mock('./hooks/usePracticeMode', () => ({
+vi.mock('./hooks/usePracticeMode', () => ({
   __esModule: true,
   usePracticeMode: () => ({
     practiceMode: null,
     effectivePracticeGameIndex: 0,
     practiceGameIndex: 0,
-    setPracticeGameIndex: jest.fn(),
+    setPracticeGameIndex: vi.fn(),
     urlPracticeGameIndex: null,
     previousPracticeMode: null,
-    setPreviousPracticeMode: jest.fn(),
-    handlePracticeModeChange: jest.fn(),
+    setPreviousPracticeMode: vi.fn(),
+    handlePracticeModeChange: vi.fn(),
   }),
 }));
 
-jest.mock('./hooks/useGameState', () => ({
+vi.mock('./hooks/useGameState', () => ({
   __esModule: true,
   useGameState: () => ({
     currentGuess: [] as string[],
-    setCurrentGuess: jest.fn(),
+    setCurrentGuess: vi.fn(),
     isGameWon: false,
-    setIsGameWon: jest.fn(),
+    setIsGameWon: vi.fn(),
     isGameLost: false,
-    setIsGameLost: jest.fn(),
+    setIsGameLost: vi.fn(),
     guesses: [] as string[][],
-    setGuesses: jest.fn(),
+    setGuesses: vi.fn(),
     isNotEnoughRoutes: false,
-    setIsNotEnoughRoutes: jest.fn(),
+    setIsNotEnoughRoutes: vi.fn(),
     isGuessInvalid: false,
-    setIsGuessInvalid: jest.fn(),
+    setIsGuessInvalid: vi.fn(),
     toastStack: [] as any[],
-    setToastStack: jest.fn(),
+    setToastStack: vi.fn(),
     absentRoutes: [] as string[],
-    setAbsentRoutes: jest.fn(),
+    setAbsentRoutes: vi.fn(),
     presentRoutes: [] as string[],
-    setPresentRoutes: jest.fn(),
+    setPresentRoutes: vi.fn(),
     similarRoutes: [] as string[],
-    setSimilarRoutes: jest.fn(),
+    setSimilarRoutes: vi.fn(),
     similarRoutesIndexes: {} as Record<string, number[]>,
-    setSimilarRoutesIndexes: jest.fn(),
+    setSimilarRoutesIndexes: vi.fn(),
     correctRoutes: [] as string[],
-    setCorrectRoutes: jest.fn(),
+    setCorrectRoutes: vi.fn(),
   }),
 }));
 
-jest.mock('./hooks/useGameData', () => ({
+vi.mock('./hooks/useGameData', () => ({
   __esModule: true,
   useGameData: () => ({ isDataLoaded: true, isGameDataLoaded: true }),
 }));
 
-jest.mock('./hooks/useKeyboard', () => ({
+vi.mock('./hooks/useKeyboard', () => ({
   __esModule: true,
-  useKeyboard: () => ({ onChar: jest.fn(), onDelete: jest.fn(), onEnter: jest.fn() }),
+  useKeyboard: () => ({ onChar: vi.fn(), onDelete: vi.fn(), onEnter: vi.fn() }),
 }));
 
-jest.mock('./utils/answerValidations', () => ({
+vi.mock('./utils/answerValidations', () => ({
   __esModule: true,
   isAccessible: () => false,
   isNight: () => false,
@@ -78,28 +82,23 @@ jest.mock('./utils/answerValidations', () => ({
   NIGHT_GAMES: [] as number[],
 }));
 
-const createMapboxMock = () => ({
-  Map: jest.fn(() => ({
-    on: jest.fn(),
-    resize: jest.fn(),
-    addSource: jest.fn(),
-    addLayer: jest.fn(),
-    fitBounds: jest.fn(),
-    getCenter: jest.fn(() => ({ lng: { toFixed: () => '-73.98119' }, lat: { toFixed: () => '40.75855' } })),
-    getZoom: jest.fn(() => ({ toFixed: () => '12' })),
-    dragRotate: { disable: jest.fn() },
-    touchZoomRotate: { disableRotation: jest.fn() },
-    off: jest.fn(),
-  })),
-  LngLatBounds: jest.fn(() => ({ extend: jest.fn(function() { return this; }), isEmpty: () => false })),
-});
-
-jest.mock('mapbox-gl', () => createMapboxMock());
-jest.mock('!mapbox-gl', () => createMapboxMock(), { virtual: true });
-
-const { SettingsProvider } = require('./contexts/SettingsContext');
-const { StatsProvider } = require('./contexts/StatsContext');
-const App = require('./App').default;
+vi.mock('mapbox-gl', () => ({
+  default: {
+    Map: vi.fn(() => ({
+      on: vi.fn(),
+      resize: vi.fn(),
+      addSource: vi.fn(),
+      addLayer: vi.fn(),
+      fitBounds: vi.fn(),
+      getCenter: vi.fn(() => ({ lng: { toFixed: () => '-73.98119' }, lat: { toFixed: () => '40.75855' } })),
+      getZoom: vi.fn(() => ({ toFixed: () => '12' })),
+      dragRotate: { disable: vi.fn() },
+      touchZoomRotate: { disableRotation: vi.fn() },
+      off: vi.fn(),
+    })),
+    LngLatBounds: vi.fn(() => ({ extend: vi.fn(function() { return this; }), isEmpty: () => false })),
+  },
+}));
 
 const renderApp = () => render(
   <StatsProvider>

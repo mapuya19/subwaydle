@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { Modal, Header, Button, Icon } from 'semantic-ui-react';
 
 import Stats from '../../stats/Stats/Stats';
@@ -12,37 +11,53 @@ import { shareStatus } from '../../../utils/share';
 import { useDarkMode } from '../../../contexts';
 import { useStats } from '../../../contexts/StatsContext';
 
-import stations from "../../../data/stations.json";
+import stations from '../../../data/stations.json';
 import { ALERT_TIME_MS, isIosDevice } from '../../../utils/constants';
+import { PracticeMode } from '../../../utils/constants';
 import './SolutionModal.scss';
 
-const SolutionModal = (props) => {
-  const { open, handleModalClose, isGameWon, guesses, practiceMode = null, practiceGameIndex = null } = props;
+interface SolutionModalProps {
+  open: boolean;
+  handleModalClose: () => void;
+  isGameWon: boolean;
+  guesses: string[][];
+  practiceMode?: PracticeMode | null;
+  practiceGameIndex?: number | null;
+}
+
+const SolutionModal = ({
+  open,
+  handleModalClose,
+  isGameWon,
+  guesses,
+  practiceMode = null,
+  practiceGameIndex = null,
+}: SolutionModalProps) => {
   const { stats } = useStats();
   const isDarkMode = useDarkMode(practiceMode);
   const [isShareButtonShowCopied, setIsShareButtonShowCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalHidden, setIsModalHidden] = useState(false);
-  const modal = useRef(null);
+  const modal = useRef<any>(null);
   const trip = todaysTrip(practiceMode, practiceGameIndex);
   const solution = todaysSolution(practiceMode, practiceGameIndex);
   const title = isGameWon ? "Yay! You completed today's trip!" : "Aww, looks like you got lost on the subway...";
   const isIos = isIosDevice();
 
-  const handleShareClick = () => {
+  const handleShareClick = (): void => {
     shareStatus(guesses, !isGameWon, practiceMode, practiceGameIndex);
     if (!navigator.share || !isIos) {
       setIsShareButtonShowCopied(true);
       setTimeout(() => {
-        setIsShareButtonShowCopied(false)
+        setIsShareButtonShowCopied(false);
       }, ALERT_TIME_MS);
     }
-  }
+  };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     setIsModalHidden(true);
     handleModalClose();
-  }
+  };
 
   useEffect(() => {
     if (isModalHidden) {
@@ -50,7 +65,7 @@ const SolutionModal = (props) => {
       modal.current.ref.current.parentElement.parentElement.classList.remove("dimmable");
       modal.current.ref.current.parentElement.parentElement.classList.remove("dimmed");
     } else {
-      if (modal.current.ref.current) {
+      if (modal.current?.ref?.current) {
         modal.current.ref.current.parentElement.setAttribute("style", "display: flex !important");
         modal.current.ref.current.parentElement.parentElement.classList.add("dimmable");
         modal.current.ref.current.parentElement.parentElement.classList.add("dimmed");
@@ -65,6 +80,8 @@ const SolutionModal = (props) => {
     }
   }, [open]);
 
+  const stationsData = stations as Record<string, { name: string }>;
+
   return (
     <Modal closeIcon open={isModalOpen} onClose={handleClose} ref={modal} size='small' className={isDarkMode ? 'solution-modal dark' : 'solution-modal'}>
       <Modal.Header>{ title }</Modal.Header>
@@ -74,16 +91,16 @@ const SolutionModal = (props) => {
           <Header as='h3'>Today's Journey</Header>
           { !isAccessible(practiceMode) &&
             <>
-              <TrainBullet id={trip[0]} size='small' /> from { stations[solution.origin].name } to { stations[solution.first_transfer_arrival].name }<br />
-              <TrainBullet id={trip[1]} size='small' /> from { stations[solution.first_transfer_departure].name } to { stations[solution.second_transfer_arrival].name }<br />
-              <TrainBullet id={trip[2]} size='small' /> from { stations[solution.second_transfer_departure].name } to { stations[solution.destination].name }
+              <TrainBullet id={trip[0]} size='small' /> from { stationsData[solution.origin].name } to { stationsData[solution.first_transfer_arrival].name }<br />
+              <TrainBullet id={trip[1]} size='small' /> from { stationsData[solution.first_transfer_departure].name } to { stationsData[solution.second_transfer_arrival].name }<br />
+              <TrainBullet id={trip[2]} size='small' /> from { stationsData[solution.second_transfer_departure].name } to { stationsData[solution.destination].name }
             </>
           }
           { isAccessible(practiceMode) &&
             <>
-              <TrainBullet id={trip[0]} size='small' /> from { stations[solution.origin].name } ♿️ to { stations[solution.first_transfer_arrival].name } ♿️<br />
-              <TrainBullet id={trip[1]} size='small' /> from { stations[solution.first_transfer_departure].name } ♿️ to { stations[solution.second_transfer_arrival].name } ♿️<br />
-              <TrainBullet id={trip[2]} size='small' /> from { stations[solution.second_transfer_departure].name } ♿️ to { stations[solution.destination].name } ♿️
+              <TrainBullet id={trip[0]} size='small' /> from { stationsData[solution.origin].name } ♿️ to { stationsData[solution.first_transfer_arrival].name } ♿️<br />
+              <TrainBullet id={trip[1]} size='small' /> from { stationsData[solution.first_transfer_departure].name } ♿️ to { stationsData[solution.second_transfer_arrival].name } ♿️<br />
+              <TrainBullet id={trip[2]} size='small' /> from { stationsData[solution.second_transfer_departure].name } ♿️ to { stationsData[solution.destination].name } ♿️
             </>
           }
           { !practiceMode && <Stats isDarkMode={isDarkMode} stats={stats} /> }
@@ -98,15 +115,6 @@ const SolutionModal = (props) => {
       </Modal.Content>
     </Modal>
   );
-}
-
-SolutionModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  handleModalClose: PropTypes.func.isRequired,
-  isGameWon: PropTypes.bool.isRequired,
-  guesses: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-  practiceMode: PropTypes.string,
-  practiceGameIndex: PropTypes.number,
 };
 
 export default SolutionModal;

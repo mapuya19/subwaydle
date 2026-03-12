@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { saveSettings } from '../utils/settings';
-import { VALID_PRACTICE_MODES } from '../utils/constants';
+import { VALID_PRACTICE_MODES, PracticeMode } from '../utils/constants';
 import { GameSettings } from '../utils/settings';
 
 const readUrlParams = () => {
@@ -19,35 +19,34 @@ const readUrlParams = () => {
   return { mode: null, gameIndex: null };
 };
 
-export const usePracticeMode = (settings: GameSettings, setSettings: (settings: GameSettings | ((prev: GameSettings) => GameSettings)) => void) => {
-  const [urlPracticeMode, setUrlPracticeMode] = useState<string | null>(() => readUrlParams().mode);
+export const usePracticeMode = (settings: GameSettings, setSettings: (settings: GameSettings) => void) => {
+  const [urlPracticeMode, setUrlPracticeMode] = useState<PracticeMode | null>(() => {
+    const mode = readUrlParams().mode;
+    return (mode && VALID_PRACTICE_MODES.includes(mode as PracticeMode)) ? (mode as PracticeMode) : null;
+  });
   const [urlPracticeGameIndex, setUrlPracticeGameIndex] = useState<number | null>(() => readUrlParams().gameIndex);
   const [practiceGameIndex, setPracticeGameIndex] = useState<number | null>(null);
-  const [previousPracticeMode, setPreviousPracticeMode] = useState<string | null>(null);
+  const [previousPracticeMode, setPreviousPracticeMode] = useState<PracticeMode | null>(null);
 
   useEffect(() => {
     if (urlPracticeMode && urlPracticeGameIndex !== null) {
-      setSettings((prevSettings) => {
-        if (prevSettings.practice?.mode !== urlPracticeMode || !prevSettings.practice?.enabled) {
-          const updatedSettings: GameSettings = {
-            ...prevSettings,
-            practice: {
-              ...prevSettings.practice,
-              mode: urlPracticeMode as any,
-              enabled: true,
-            }
-          };
-          saveSettings(updatedSettings);
-          return updatedSettings;
-        }
-        return prevSettings;
-      });
+      if (settings.practice?.mode !== urlPracticeMode || !settings.practice?.enabled) {
+        const updatedSettings: GameSettings = {
+          ...settings,
+          practice: {
+            ...settings.practice,
+            mode: urlPracticeMode,
+            enabled: true,
+          }
+        };
+        saveSettings(updatedSettings);
+        setSettings(updatedSettings);
+      }
     }
-  }, [setSettings, urlPracticeMode, urlPracticeGameIndex]);
+  }, [setSettings, urlPracticeMode, urlPracticeGameIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const practiceMode = urlPracticeMode 
-    ? urlPracticeMode 
-    : (settings.practice?.enabled ? settings.practice?.mode : null);
+  const practiceMode: PracticeMode | null = urlPracticeMode
+    ?? (settings.practice?.enabled ? (settings.practice?.mode ?? null) : null);
   
   const effectivePracticeGameIndex = (practiceGameIndex !== null)
     ? practiceGameIndex

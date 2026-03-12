@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 interface Route {
   id: string;
   name: string;
@@ -64,7 +65,7 @@ const mockGameData: {
   },
 };
 
-jest.mock('./gameDataLoader', () => ({
+vi.mock('./gameDataLoader', () => ({
   __esModule: true,
   getGameData: () => mockGameData,
   todayGameIndex: () => 0,
@@ -72,22 +73,26 @@ jest.mock('./gameDataLoader', () => ({
   ACCESSIBLE_GAME: 793,
 }));
 
-jest.mock('./../data/routes.json', () => ({
-  '1': { id: '1', name: '1', color: '#db2828' },
-  '2': { id: '2', name: '2', color: '#db2828' },
-  '3': { id: '3', name: '3', color: '#db2828' },
-  '4': { id: '4', name: '4', color: '#21ba45' },
-  '5': { id: '5', name: '5', color: '#21ba45' },
-  '6': { id: '6', name: '6', color: '#21ba45' },
-  'A': { id: 'A', name: 'A', color: '#0039a6' },
-  'SI': { id: 'SI', name: 'SI', color: '#6cbe45' },
-  'GS': { id: 'GS', name: 'GS', color: '#6cbe45' },
-}), { virtual: true });
+vi.mock('./../data/routes.json', () => ({
+  default: {
+    '1': { id: '1', name: '1', color: '#db2828' },
+    '2': { id: '2', name: '2', color: '#db2828' },
+    '3': { id: '3', name: '3', color: '#db2828' },
+    '4': { id: '4', name: '4', color: '#21ba45' },
+    '5': { id: '5', name: '5', color: '#21ba45' },
+    '6': { id: '6', name: '6', color: '#21ba45' },
+    'A': { id: 'A', name: 'A', color: '#0039a6' },
+    'SI': { id: 'SI', name: 'SI', color: '#6cbe45' },
+    'GS': { id: 'GS', name: 'GS', color: '#6cbe45' },
+  }
+}));
 
-jest.mock('./../data/transfers.json', () => ({
-  'R01': ['R10'],
-  'R03': ['R15'],
-}), { virtual: true });
+vi.mock('./../data/transfers.json', () => ({
+  default: {
+    'R01': ['R10'],
+    'R03': ['R15'],
+  }
+}));
 
 import {
   isValidGuess,
@@ -106,7 +111,7 @@ type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
 describe('answerValidations', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isValidGuess', () => {
@@ -207,11 +212,11 @@ describe('answerValidations', () => {
 
   describe('isWeekend', () => {
     beforeEach(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('returns true for weekend practice mode', () => {
@@ -225,13 +230,13 @@ describe('answerValidations', () => {
     });
 
     it('detects weekend based on current day when no practice mode', () => {
-      jest.setSystemTime(new Date('2024-01-06T12:00:00'));
+      vi.setSystemTime(new Date('2024-01-06T12:00:00'));
       expect(isWeekend(null)).toBe(true);
 
-      jest.setSystemTime(new Date('2024-01-07T12:00:00'));
+      vi.setSystemTime(new Date('2024-01-07T12:00:00'));
       expect(isWeekend(null)).toBe(true);
 
-      jest.setSystemTime(new Date('2024-01-08T12:00:00'));
+      vi.setSystemTime(new Date('2024-01-08T12:00:00'));
       expect(isWeekend(null)).toBe(false);
     });
   });

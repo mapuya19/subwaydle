@@ -1,9 +1,15 @@
 import { Header, Statistic } from 'semantic-ui-react';
 import { useDarkMode } from '../../../contexts';
 import { useStats } from '../../../contexts/StatsContext';
-import './StatsBox.scss'
+import { GameStats } from '../../../utils/stats';
+import './StatsBox.scss';
 
-const StatsBox = (props) => {
+interface StatsBoxProps {
+  isDarkMode?: boolean;
+  stats?: GameStats;
+}
+
+const StatsBox = (_props: StatsBoxProps) => {
   const { stats } = useStats();
   const isDarkMode = useDarkMode();
   return (
@@ -30,7 +36,7 @@ const StatsBox = (props) => {
         </Statistic.Group>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default StatsBox;

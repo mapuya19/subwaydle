@@ -2,8 +2,14 @@ import StatsBox from '../StatsBox/StatsBox';
 import StatsHistogram from '../StatsHistogram/StatsHistogram';
 import { useStats } from '../../../contexts/StatsContext';
 import { useDarkMode } from '../../../contexts';
+import { GameStats } from '../../../utils/stats';
 
-const Stats = (props) => {
+interface StatsProps {
+  isDarkMode?: boolean;
+  stats?: GameStats;
+}
+
+const Stats = (_props: StatsProps) => {
   const { stats } = useStats();
   const isDarkMode = useDarkMode();
   return (
@@ -12,6 +18,6 @@ const Stats = (props) => {
       <StatsHistogram isDarkMode={isDarkMode} stats={stats} />
     </>
   );
-}
+};
 
 export default Stats;

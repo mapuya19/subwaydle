@@ -1,4 +1,4 @@
-@import '../../modals/_shared';
+@use '../../modals/shared' as *;
 
 .stats-modal {
   @extend %modal-base;

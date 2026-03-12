@@ -1,4 +1,4 @@
-@import '../_shared';
+@use '../shared' as *;
 
 .solution-modal {
   @extend %modal-base;

@@ -58,9 +58,9 @@ const App = () => {
     previousPracticeMode,
     setPreviousPracticeMode,
     handlePracticeModeChange,
-  } = usePracticeMode(settings, (s: any) => setSettings(s));
+  } = usePracticeMode(settings, setSettings);
 
-  const gameState = useGameState(practiceMode as PracticeMode | null, effectivePracticeGameIndex);
+  const gameState = useGameState(practiceMode, effectivePracticeGameIndex);
   const {
     currentGuess,
     setCurrentGuess,
@@ -89,12 +89,12 @@ const App = () => {
   } = gameState;
 
   const { isDataLoaded, isGameDataLoaded } = useGameData(
-    practiceMode as PracticeMode | null,
+    practiceMode,
     effectivePracticeGameIndex,
     urlPracticeGameIndex,
     practiceGameIndex,
     setPracticeGameIndex,
-    previousPracticeMode as PracticeMode | null,
+    previousPracticeMode,
     setPreviousPracticeMode,
     setGuesses,
     setCurrentGuess,
@@ -117,7 +117,7 @@ const App = () => {
     setGuesses,
     currentGuess,
     setCurrentGuess,
-    practiceMode: practiceMode as PracticeMode | null,
+    practiceMode: practiceMode,
     effectivePracticeGameIndex,
     setIsGameWon,
     setIsGameLost,
@@ -197,9 +197,9 @@ const App = () => {
     );
   }
 
-  const solution = todaysSolution(practiceMode as PracticeMode | null, effectivePracticeGameIndex);
-  const currentIsAccessible = isAccessible(practiceMode as PracticeMode | null);
-  const currentIsWeekend = isWeekend(practiceMode as PracticeMode | null);
+  const solution = todaysSolution(practiceMode, effectivePracticeGameIndex);
+  const currentIsAccessible = isAccessible(practiceMode);
+  const currentIsWeekend = isWeekend(practiceMode);
 
   return (
     <div className={"outer-app-wrapper " + (isDarkMode ? 'dark' : '')}>

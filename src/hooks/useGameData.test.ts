@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGameData } from './useGameData';
 import * as gameDataLoader from '../utils/gameDataLoader';
@@ -6,52 +7,52 @@ import { flattenedTodaysTrip, updateGuessStatuses } from '../utils/answerValidat
 
 type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
-jest.mock('../utils/gameDataLoader', () => ({
-  loadGameData: jest.fn(() => Promise.resolve({
+vi.mock('../utils/gameDataLoader', () => ({
+  loadGameData: vi.fn(() => Promise.resolve({
     answers: [['1', '2', '3']],
     solutions: {},
     routings: {},
     loading: false,
     currentMode: 'weekday',
   })),
-  isGameDataLoadedForMode: jest.fn(() => false),
+  isGameDataLoadedForMode: vi.fn(() => false),
 }));
 
-jest.mock('../utils/localStorage', () => ({
-  loadGameStateFromLocalStorage: jest.fn(() => null),
-  isNewToGame: jest.fn(() => true),
+vi.mock('../utils/localStorage', () => ({
+  loadGameStateFromLocalStorage: vi.fn(() => null),
+  isNewToGame: vi.fn(() => true),
 }));
 
-jest.mock('../utils/answerValidations', () => ({
-  flattenedTodaysTrip: jest.fn(() => '1-2-3'),
-  updateGuessStatuses: jest.fn(),
+vi.mock('../utils/answerValidations', () => ({
+  flattenedTodaysTrip: vi.fn(() => '1-2-3'),
+  updateGuessStatuses: vi.fn(),
 }));
 
 describe('useGameData', () => {
-  const mockSetGuesses = jest.fn();
-  const mockSetCurrentGuess = jest.fn();
-  const mockSetIsGameWon = jest.fn();
-  const mockSetIsGameLost = jest.fn();
-  const mockSetIsAboutOpen = jest.fn();
-  const mockSetIsSolutionsOpen = jest.fn();
-  const mockSetCorrectRoutes = jest.fn();
-  const mockSetSimilarRoutes = jest.fn();
-  const mockSetPresentRoutes = jest.fn();
-  const mockSetAbsentRoutes = jest.fn();
-  const mockSetSimilarRoutesIndexes = jest.fn();
-  const mockSetPracticeGameIndex = jest.fn();
-  const mockSetPreviousPracticeMode = jest.fn();
+  const mockSetGuesses = vi.fn();
+  const mockSetCurrentGuess = vi.fn();
+  const mockSetIsGameWon = vi.fn();
+  const mockSetIsGameLost = vi.fn();
+  const mockSetIsAboutOpen = vi.fn();
+  const mockSetIsSolutionsOpen = vi.fn();
+  const mockSetCorrectRoutes = vi.fn();
+  const mockSetSimilarRoutes = vi.fn();
+  const mockSetPresentRoutes = vi.fn();
+  const mockSetAbsentRoutes = vi.fn();
+  const mockSetSimilarRoutesIndexes = vi.fn();
+  const mockSetPracticeGameIndex = vi.fn();
+  const mockSetPreviousPracticeMode = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (gameDataLoader.loadGameData as jest.Mock).mockImplementation(() => Promise.resolve({
+    vi.clearAllMocks();
+    (gameDataLoader.loadGameData as ReturnType<typeof vi.fn>).mockImplementation(() => Promise.resolve({
       answers: [['1', '2', '3']],
       solutions: {},
       routings: {},
       loading: false,
       currentMode: 'weekday',
     }));
-    (gameDataLoader.isGameDataLoadedForMode as jest.Mock).mockReturnValue(false);
+    (gameDataLoader.isGameDataLoadedForMode as ReturnType<typeof vi.fn>).mockReturnValue(false);
   });
 
   const renderUseGameData = (practiceMode: PracticeMode = null, effectivePracticeGameIndex: number | null = null) => {
@@ -123,7 +124,7 @@ describe('useGameData', () => {
       expect(gameDataLoader.loadGameData).toHaveBeenCalled();
     });
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     rerender({ practiceMode: 'night' });
 
@@ -162,7 +163,7 @@ describe('useGameData', () => {
       expect(gameDataLoader.loadGameData).toHaveBeenCalled();
     });
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     rerender({ practiceMode: 'night', previousPracticeMode: null });
 
@@ -181,9 +182,9 @@ describe('useGameData', () => {
       guesses: [['1', '2', '3']],
       answer: '1-2-3',
     };
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
-    (isNewToGame as jest.Mock).mockReturnValue(false);
-    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue(savedState);
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
 
     renderUseGameData();
 
@@ -194,8 +195,8 @@ describe('useGameData', () => {
   });
 
   it('does not load state for new users', async () => {
-    (isNewToGame as jest.Mock).mockReturnValue(true);
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(null);
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
     renderUseGameData();
 
@@ -206,9 +207,9 @@ describe('useGameData', () => {
 
   it('handles practice mode in localStorage loading', async () => {
     const savedState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
-    (isNewToGame as jest.Mock).mockReturnValue(false);
-    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue(savedState);
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
 
     renderUseGameData('night', 5);
 
@@ -222,9 +223,9 @@ describe('useGameData', () => {
       guesses: [['1', '2', '3'], ['4', '5', '6']],
       answer: '1-2-3',
     };
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(savedState);
-    (isNewToGame as jest.Mock).mockReturnValue(false);
-    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue(savedState);
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
 
     renderUseGameData();
 
@@ -234,9 +235,9 @@ describe('useGameData', () => {
   });
 
   it('shows about modal for new users', async () => {
-    (isNewToGame as jest.Mock).mockReturnValue(true);
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue(null);
-    (flattenedTodaysTrip as jest.Mock).mockReturnValue('1-2-3');
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
     
     const { result } = renderUseGameData();
 
@@ -248,8 +249,8 @@ describe('useGameData', () => {
   });
 
   it('does not show about modal for returning users', async () => {
-    (isNewToGame as jest.Mock).mockReturnValue(false);
-    (loadGameStateFromLocalStorage as jest.Mock).mockReturnValue({ guesses: [] });
+    (isNewToGame as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    (loadGameStateFromLocalStorage as ReturnType<typeof vi.fn>).mockReturnValue({ guesses: [] });
 
     renderUseGameData();
 
@@ -259,7 +260,7 @@ describe('useGameData', () => {
   });
 
   it('handles game data loading errors gracefully', async () => {
-    (gameDataLoader.loadGameData as jest.Mock).mockRejectedValueOnce(new Error('Failed to load'));
+    (gameDataLoader.loadGameData as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Failed to load'));
 
     const { result } = renderUseGameData();
 
@@ -269,7 +270,7 @@ describe('useGameData', () => {
   });
 
   it('checks if game data is loaded for current mode', async () => {
-    (gameDataLoader.isGameDataLoadedForMode as jest.Mock).mockReturnValue(true);
+    (gameDataLoader.isGameDataLoadedForMode as ReturnType<typeof vi.fn>).mockReturnValue(true);
 
     renderUseGameData('night');
 

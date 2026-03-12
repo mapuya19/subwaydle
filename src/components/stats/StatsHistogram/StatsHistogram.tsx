@@ -1,9 +1,15 @@
 import { Header, Grid, Progress } from 'semantic-ui-react';
 import { useDarkMode } from '../../../contexts';
 import { useStats } from '../../../contexts/StatsContext';
+import { GameStats } from '../../../utils/stats';
 import './StatsHistogram.scss';
 
-const StatsHistogram = (props) => {
+interface StatsHistogramProps {
+  isDarkMode?: boolean;
+  stats?: GameStats;
+}
+
+const StatsHistogram = (_props: StatsHistogramProps) => {
   const { stats } = useStats();
   const isDarkMode = useDarkMode();
   const max = Math.max(...stats.winDistribution);
@@ -23,13 +29,13 @@ const StatsHistogram = (props) => {
                     <Progress progress='value' success inverted={isDarkMode} value={value} total={max} />
                   </Grid.Column>
                 </Grid.Row>
-              )
+              );
             })
           }
         </Grid>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default StatsHistogram;

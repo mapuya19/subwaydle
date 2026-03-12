@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+import mapboxgl from 'mapbox-gl';
 
 import { isWeekend, todaysTrip, todaysSolution } from '../../../utils/answerValidations';
 
@@ -11,7 +11,7 @@ import { PracticeMode } from '../../../utils/constants';
 
 import './MapFrame.scss';
 
-(mapboxgl as any).accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+(mapboxgl as any).accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 interface MapFrameProps {
   practiceMode?: PracticeMode | null;

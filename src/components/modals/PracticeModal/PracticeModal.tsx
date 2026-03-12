@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Radio, Button } from 'semantic-ui-react';
 import { useSettings, useDarkMode } from '../../../contexts';
+import { GameSettings } from '../../../utils/settings';
+import { PracticeMode } from '../../../utils/constants';
 
-import './PracticeModal.scss'
+import './PracticeModal.scss';
 
-const PracticeModal = (props) => {
-  const { open, handleClose, onPracticeModeChange } = props;
+interface PracticeModalProps {
+  open: boolean;
+  handleClose: () => void;
+  onPracticeModeChange: (settings: GameSettings, forceNewGame?: boolean) => void;
+}
+
+const PracticeModal = ({ open, handleClose, onPracticeModeChange }: PracticeModalProps) => {
   const { settings, setSettings } = useSettings();
   const isDarkMode = useDarkMode();
-  const [selectedMode, setSelectedMode] = useState(settings.practice?.mode || null);
+  const [selectedMode, setSelectedMode] = useState<PracticeMode | null>(settings.practice?.mode || null);
 
   // Sync selectedMode with current practice mode when modal opens
   useEffect(() => {
@@ -18,12 +24,12 @@ const PracticeModal = (props) => {
     }
   }, [open, settings.practice?.mode]);
 
-  const handleModeChange = (mode) => {
+  const handleModeChange = (mode: PracticeMode): void => {
     setSelectedMode(mode);
-  }
+  };
 
-  const handleStartPractice = () => {
-    const updatedSettings = {
+  const handleStartPractice = (): void => {
+    const updatedSettings: GameSettings = {
       ...settings,
       practice: {
         ...settings.practice,
@@ -36,10 +42,10 @@ const PracticeModal = (props) => {
     // Always force a new game when clicking "Start Practice"
     onPracticeModeChange(updatedSettings, true);
     handleClose();
-  }
+  };
 
-  const handleExitPractice = () => {
-    const updatedSettings = {
+  const handleExitPractice = (): void => {
+    const updatedSettings: GameSettings = {
       ...settings,
       practice: {
         ...settings.practice,
@@ -50,7 +56,7 @@ const PracticeModal = (props) => {
     setSettings(updatedSettings);
     onPracticeModeChange(updatedSettings);
     handleClose();
-  }
+  };
 
   return (
     <Modal closeIcon open={open} onClose={handleClose} size='small' className={isDarkMode ? 'practice-modal dark' : 'practice-modal'}>
@@ -116,13 +122,6 @@ const PracticeModal = (props) => {
       </Modal.Actions>
     </Modal>
   );
-}
-
-PracticeModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  handleClose: PropTypes.func.isRequired,
-  onPracticeModeChange: PropTypes.func.isRequired,
 };
 
 export default PracticeModal;
-

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import {
   removeDisconnectedRouteCombos,
   todayGameIndex,
@@ -37,33 +38,33 @@ const mockRoutings: Record<string, string[]> = { 'A': [], 'B': [], 'C': [], '1':
 
 const createMockModule = (data: any) => ({ __esModule: true, default: data });
 
-jest.mock('../data/weekday/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-jest.mock('../data/weekday/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-jest.mock('../data/weekday/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/weekday/answers.json', () => createMockModule(mockAnswers), { virtual: true });
+vi.mock('../data/weekday/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
+vi.mock('../data/weekday/routings.json', () => createMockModule(mockRoutings), { virtual: true });
 
-jest.mock('../data/weekend/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-jest.mock('../data/weekend/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-jest.mock('../data/weekend/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/weekend/answers.json', () => createMockModule(mockAnswers), { virtual: true });
+vi.mock('../data/weekend/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
+vi.mock('../data/weekend/routings.json', () => createMockModule(mockRoutings), { virtual: true });
 
-jest.mock('../data/night/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-jest.mock('../data/night/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-jest.mock('../data/night/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/night/answers.json', () => createMockModule(mockAnswers), { virtual: true });
+vi.mock('../data/night/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
+vi.mock('../data/night/routings.json', () => createMockModule(mockRoutings), { virtual: true });
 
-jest.mock('../data/accessible/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-jest.mock('../data/accessible/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-jest.mock('../data/accessible/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/accessible/answers.json', () => createMockModule(mockAnswers), { virtual: true });
+vi.mock('../data/accessible/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
+vi.mock('../data/accessible/routings.json', () => createMockModule(mockRoutings), { virtual: true });
 
 type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
 describe('gameDataLoader', () => {
   beforeEach(() => {
     clearGameDataCache();
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('removeDisconnectedRouteCombos', () => {
@@ -154,29 +155,29 @@ describe('gameDataLoader', () => {
 
   describe('todayGameIndex', () => {
     beforeEach(() => {
-      jest.useFakeTimers({ advanceTimers: true });
+      vi.useFakeTimers({ advanceTimers: true });
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('calculates game index from epoch', () => {
-      jest.setSystemTime(new Date('2022-01-30T12:00:00'));
+      vi.setSystemTime(new Date('2022-01-30T12:00:00'));
       const index = todayGameIndex();
       expect(index).toBe(1);
     });
 
     it('handles dates before epoch', () => {
-      jest.setSystemTime(new Date('2022-01-28T12:00:00'));
+      vi.setSystemTime(new Date('2022-01-28T12:00:00'));
       const index = todayGameIndex();
       expect(index).toBe(-1);
     });
 
     it('returns consistent index for same day', () => {
-      jest.setSystemTime(new Date('2022-02-01T12:00:00'));
+      vi.setSystemTime(new Date('2022-02-01T12:00:00'));
       const index1 = todayGameIndex();
-      jest.setSystemTime(new Date('2022-02-01T23:59:59'));
+      vi.setSystemTime(new Date('2022-02-01T23:59:59'));
       const index2 = todayGameIndex();
       expect(index1).toBe(index2);
     });

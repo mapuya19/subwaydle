@@ -1,24 +1,27 @@
-import PropTypes from 'prop-types';
 import { Modal, Header, Grid, Checkbox, Icon, Popup } from 'semantic-ui-react';
 import { todayGameIndex, NIGHT_GAMES } from '../../../utils/answerValidations';
 import { useSettings, useDarkMode } from '../../../contexts';
 
-import './SettingsModal.scss'
+import './SettingsModal.scss';
 
-const SettingsModal = (props) => {
-  const { open, handleClose } = props;
+interface SettingsModalProps {
+  open: boolean;
+  handleClose: () => void;
+}
+
+const SettingsModal = ({ open, handleClose }: SettingsModalProps) => {
   const { settings, setSettings } = useSettings();
   const isDarkMode = useDarkMode();
 
-  const handleToggleChange = (settingKey) => (event, value) => {
+  const handleToggleChange = (settingKey: string) => (_event: React.FormEvent<HTMLInputElement>, value: { checked?: boolean }) => {
     setSettings({
       ...settings,
       display: {
         ...settings.display,
-        [settingKey]: value.checked,
+        [settingKey]: value.checked ?? false,
       }
     });
-  }
+  };
 
   return (
     <Modal closeIcon open={open} onClose={handleClose} size='tiny' className={isDarkMode ? 'settings-modal dark' : 'settings-modal'}>
@@ -61,11 +64,6 @@ const SettingsModal = (props) => {
       </Modal.Content>
     </Modal>
   );
-}
-
-SettingsModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  handleClose: PropTypes.func.isRequired,
 };
 
 export default SettingsModal;
