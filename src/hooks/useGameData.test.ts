@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useGameData } from './useGameData';
 import * as gameDataLoader from '../utils/gameDataLoader';
 import { loadGameStateFromLocalStorage, isNewToGame } from '../utils/localStorage';

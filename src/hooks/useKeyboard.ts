@@ -5,6 +5,7 @@ import { addStatsForCompletedGame } from '../utils/stats';
 import { ATTEMPTS, ALERT_TIME_MS } from '../utils/constants';
 import { GameStats } from '../utils/stats';
 import { PracticeMode } from '../utils/constants';
+import { ToastItem } from '../utils/types';
 
 interface UseKeyboardProps {
   isStatsOpen: boolean;
@@ -21,7 +22,7 @@ interface UseKeyboardProps {
   setIsSolutionsOpen: (open: boolean) => void;
   setIsNotEnoughRoutes: (notEnough: boolean) => void;
   setIsGuessInvalid: (invalid: boolean) => void;
-  setToastStack: (toasts: any[] | ((prev: any[]) => any[])) => void;
+  setToastStack: (toasts: ToastItem[] | ((prev: ToastItem[]) => ToastItem[])) => void;
   correctRoutes: string[];
   setCorrectRoutes: (routes: string[]) => void;
   similarRoutes: string[];
@@ -108,7 +109,7 @@ export const useKeyboard = ({
       if (prevGuess.length !== 3) {
         const toastId = `not-enough-${now}-${++toastIdCounter.current}`;
         setToastStack((prev) => {
-          const veryRecentToast = prev.find((t: any) => t.type === 'not-enough' && 
+          const veryRecentToast = prev.find((t) => t.type === 'not-enough' && 
             now - parseInt(t.id.split('-')[2]) < 50);
           if (veryRecentToast) {
             return prev;
@@ -118,7 +119,7 @@ export const useKeyboard = ({
         setIsNotEnoughRoutes(true);
         setTimeout(() => {
           setToastStack((prev) => {
-            return prev.map((toast: any) => 
+            return prev.map((toast) => 
               toast.id === toastId ? { ...toast, visible: false } : toast
             );
           });
@@ -129,7 +130,7 @@ export const useKeyboard = ({
       if (!isValidGuess(prevGuess)) {
         const toastId = `invalid-${now}-${++toastIdCounter.current}`;
         setToastStack((prev) => {
-          const veryRecentToast = prev.find((t: any) => t.type === 'invalid' && 
+          const veryRecentToast = prev.find((t) => t.type === 'invalid' && 
             now - parseInt(t.id.split('-')[1]) < 50);
           if (veryRecentToast) {
             return prev;
@@ -139,7 +140,7 @@ export const useKeyboard = ({
         setIsGuessInvalid(true);
         setTimeout(() => {
           setToastStack((prev) => {
-            return prev.map((toast: any) => 
+            return prev.map((toast) => 
               toast.id === toastId ? { ...toast, visible: false } : toast
             );
           });

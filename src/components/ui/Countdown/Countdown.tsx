@@ -20,7 +20,7 @@ const Countdown = () => {
   }, []);
 
   const [countDown, setCountDown] = useState<number>(
-    (midnight.getTime() - Date.now()) / 1000
+    () => (midnight.getTime() - Date.now()) / 1000
   );
 
   useEffect(() => {

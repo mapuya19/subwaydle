@@ -11,7 +11,7 @@ import { PracticeMode } from '../../../utils/constants';
 
 import './MapFrame.scss';
 
-(mapboxgl as any).accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+(mapboxgl as unknown as { accessToken: string }).accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 interface MapFrameProps {
   practiceMode?: PracticeMode | null;
@@ -67,17 +67,17 @@ const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFramePro
       currentSolution.destination
     ];
     return {
-      "type": "FeatureCollection",
+      "type": "FeatureCollection" as const,
       "features": [...new Set(stops)].map((stopId) => {
         const station = (stations as StationsData)[stopId];
         return {
-          "type": "Feature",
+          "type": "Feature" as const,
           "properties": {
             "id": stopId,
             "name": station.name,
           },
           "geometry": {
-            "type": "Point",
+            "type": "Point" as const,
             "coordinates": [station.longitude, station.latitude]
           }
         }
@@ -160,12 +160,12 @@ const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFramePro
     }
 
     return {
-      "type": "Feature",
+      "type": "Feature" as const,
       "properties": {
         "color": route.color,
       },
       "geometry": {
-        "type": "LineString",
+        "type": "LineString" as const,
         "coordinates": coordinates
       }
     };
@@ -233,10 +233,11 @@ const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFramePro
       ].forEach((line, _i) => {
         const lineJson = lineGeoJson(line);
         if (!lineJson) return;
+        coordinates = coordinates.concat(lineJson.geometry.coordinates);
         const layerId = `line-${_i}`;
         map.current!.addSource(layerId, {
           "type": "geojson",
-          "data": lineJson as any
+          "data": lineJson
         });
         map.current!.addLayer({
           "id": layerId,
@@ -255,7 +256,7 @@ const MapFrame = ({ practiceMode = null, practiceGameIndex = null }: MapFramePro
       const stopsJson = stopsGeoJson();
       map.current!.addSource("Stops", {
         "type": "geojson",
-        "data": stopsJson as any
+        "data": stopsJson
       });
       map.current!.addLayer({
         "id": "Stops",

@@ -8,33 +8,11 @@ import {
   loadSettingsFromLocalStorage,
   isNewToGame,
 } from './localStorage';
+import type { GameStats } from './stats';
+import type { GameSettings } from './settings';
+import type { GameState } from './types';
 
-interface GameState {
-  guesses: string[][];
-  answer: string;
-}
-
-interface Stats {
-  gamesPlayed: number;
-  gamesWon: number;
-}
-
-interface Settings {
-  display: {
-    darkMode: boolean;
-  };
-}
-
-interface LocalStorageMock {
-  store: Record<string, string>;
-  shouldThrow: boolean;
-  clear(): void;
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
-}
-
-class LocalStorageMock implements LocalStorageMock {
+class LocalStorageMock {
   store: Record<string, string>;
   shouldThrow: boolean;
 
@@ -66,7 +44,7 @@ class LocalStorageMock implements LocalStorageMock {
   }
 }
 
-let originalLocalStorage: any;
+let originalLocalStorage: Storage;
 
 beforeAll(() => {
   originalLocalStorage = global.localStorage;
@@ -79,8 +57,8 @@ beforeAll(() => {
     configurable: true,
   });
   
-  if (typeof (global as any).localStorage === 'undefined') {
-    (global as any).localStorage = mockInstance;
+  if (typeof global.localStorage === 'undefined') {
+    global.localStorage = mockInstance as unknown as Storage;
   }
 });
 
@@ -157,7 +135,7 @@ describe('localStorage utilities', () => {
 
   describe('saveStatsToLocalStorage', () => {
     it('saves and loads stats', () => {
-      const stats: Stats = { gamesPlayed: 5, gamesWon: 3 };
+      const stats: GameStats = { winDistribution: [0, 1, 2, 0, 0, 0], gamesFailed: 1, currentStreak: 2, bestStreak: 3, totalGames: 5, successRate: 80 };
       const result = saveStatsToLocalStorage(stats);
       expect(result).toBe(true);
       const loaded = loadStatsFromLocalStorage();
@@ -173,7 +151,7 @@ describe('localStorage utilities', () => {
         throw new Error('Storage quota exceeded');
       });
       
-      const stats: Stats = { gamesPlayed: 5, gamesWon: 3 };
+      const stats: GameStats = { winDistribution: [0, 1, 2, 0, 0, 0], gamesFailed: 1, currentStreak: 2, bestStreak: 3, totalGames: 5, successRate: 80 };
       expect(saveStatsToLocalStorage(stats)).toBe(false);
       expect(setItemSpy).toHaveBeenCalled();
       
@@ -195,7 +173,7 @@ describe('localStorage utilities', () => {
 
   describe('saveSettingsToLocalStorage', () => {
     it('saves and loads settings', () => {
-      const settings: Settings = { display: { darkMode: true } };
+      const settings: GameSettings = { display: { showAnswerStatusBadges: false, darkMode: true }, practice: { enabled: false, mode: null } };
       const result = saveSettingsToLocalStorage(settings);
       expect(result).toBe(true);
       const loaded = loadSettingsFromLocalStorage();
@@ -211,7 +189,7 @@ describe('localStorage utilities', () => {
         throw new Error('Storage quota exceeded');
       });
       
-      const settings: Settings = { display: { darkMode: true } };
+      const settings: GameSettings = { display: { showAnswerStatusBadges: false, darkMode: true }, practice: { enabled: false, mode: null } };
       expect(saveSettingsToLocalStorage(settings)).toBe(false);
       expect(setItemSpy).toHaveBeenCalled();
       
@@ -257,7 +235,9 @@ describe('localStorage utilities', () => {
   describe('localStorage unavailable scenarios', () => {
     it('handles missing localStorage gracefully', () => {
       const originalLocalStorage = global.localStorage;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- deleting a required property to simulate missing localStorage
       delete (global as any).localStorage;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- deleting a required property to simulate missing localStorage
       delete (window as any).localStorage;
 
       const gameState: GameState = { guesses: [['1', '2', '3']], answer: '1-2-3' };
@@ -269,6 +249,7 @@ describe('localStorage utilities', () => {
     });
 
     it('handles localStorage with missing methods', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- intentionally broken object to test missing-methods path
       const brokenStorage: any = {};
       global.localStorage = brokenStorage;
       window.localStorage = brokenStorage;

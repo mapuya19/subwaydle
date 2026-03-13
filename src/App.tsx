@@ -3,6 +3,7 @@ import { Header, Segment, Icon, Loader, Dimmer } from 'semantic-ui-react';
 
 import { GameGrid, Keyboard } from './components/game';
 import { Toast } from './components/ui';
+import { ToastItem } from './utils/types';
 
 import {
   isAccessible,
@@ -14,7 +15,6 @@ import {
 
 import stations from './data/stations.json';
 import { ATTEMPTS } from './utils/constants';
-import { PracticeMode } from './utils/constants';
 
 import { useGameState } from './hooks/useGameState';
 import { useGameData } from './hooks/useGameData';
@@ -228,7 +228,7 @@ const App = () => {
           <Header as='h5' textAlign='center' className='hint'>Travel from {(stations as StationsData)[solution.origin].name} ♿️ to {(stations as StationsData)[solution.destination].name} ♿️ using 2 accessible transfers.</Header>
         }
         <Segment basic className='game-grid-wrapper'>
-          {toastStack.map((toast: any, arrayIndex: number) => {
+          {toastStack.map((toast: ToastItem, arrayIndex: number) => {
             const visualIndex = toastStack.length - 1 - arrayIndex;
             return (
               <Toast
@@ -238,11 +238,11 @@ const App = () => {
                 index={visualIndex}
                 onComplete={() => {
                   setToastStack((prev) => {
-                    const filtered = prev.filter((t: any) => t.id !== toast.id);
-                    if (filtered.filter((t: any) => t.type === 'not-enough').length === 0) {
+                    const filtered = prev.filter((t: ToastItem) => t.id !== toast.id);
+                    if (filtered.filter((t: ToastItem) => t.type === 'not-enough').length === 0) {
                       setIsNotEnoughRoutes(false);
                     }
-                    if (filtered.filter((t: any) => t.type === 'invalid').length === 0) {
+                    if (filtered.filter((t: ToastItem) => t.type === 'invalid').length === 0) {
                       setIsGuessInvalid(false);
                     }
                     return filtered;

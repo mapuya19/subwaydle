@@ -1,8 +1,6 @@
 import { createContext, useContext } from 'react';
 
-interface GameContextValue {
-  [key: string]: any;
-}
+type GameContextValue = Record<string, unknown>;
 
 const GameContext = createContext<GameContextValue | null>(null);
 

@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import type { ToastItem } from './utils/types';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { StatsProvider } from './contexts/StatsContext';
 import App from './App';
@@ -46,7 +47,7 @@ vi.mock('./hooks/useGameState', () => ({
     setIsNotEnoughRoutes: vi.fn(),
     isGuessInvalid: false,
     setIsGuessInvalid: vi.fn(),
-    toastStack: [] as any[],
+    toastStack: [] as ToastItem[],
     setToastStack: vi.fn(),
     absentRoutes: [] as string[],
     setAbsentRoutes: vi.fn(),
@@ -96,7 +97,8 @@ vi.mock('mapbox-gl', () => ({
       touchZoomRotate: { disableRotation: vi.fn() },
       off: vi.fn(),
     })),
-    LngLatBounds: vi.fn(() => ({ extend: vi.fn(function() { return this; }), isEmpty: () => false })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock needs untyped `this` for chaining
+    LngLatBounds: vi.fn(() => ({ extend: vi.fn(function(this: any) { return this; }), isEmpty: () => false })),
   },
 }));
 

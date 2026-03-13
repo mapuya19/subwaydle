@@ -4,7 +4,6 @@ import { useGameState } from './useGameState';
 import { saveGameStateToLocalStorage } from '../utils/localStorage';
 import * as answerValidations from '../utils/answerValidations';
 
-type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
 vi.mock('../utils/localStorage', () => ({
   saveGameStateToLocalStorage: vi.fn(() => true),

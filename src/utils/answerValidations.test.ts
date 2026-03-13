@@ -5,7 +5,7 @@ interface Route {
   color: string;
 }
 
-const mockRoutes: Record<string, Route> = {
+const _mockRoutes: Record<string, Route> = {
   '1': { id: '1', name: '1', color: '#db2828' },
   '2': { id: '2', name: '2', color: '#db2828' },
   '3': { id: '3', name: '3', color: '#db2828' },
@@ -17,7 +17,7 @@ const mockRoutes: Record<string, Route> = {
   'GS': { id: 'GS', name: 'GS', color: '#6cbe45' },
 };
 
-const mockTransfers: Record<string, string[]> = {
+const _mockTransfers: Record<string, string[]> = {
   'R01': ['R10'],
   'R03': ['R15'],
 };
@@ -106,8 +106,6 @@ import {
   todaysSolution,
   flattenedTodaysTrip,
 } from './answerValidations';
-
-type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
 describe('answerValidations', () => {
   beforeEach(() => {

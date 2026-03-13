@@ -36,25 +36,24 @@ const mockSolutions: Record<string, Solution> = {
 };
 const mockRoutings: Record<string, string[]> = { 'A': [], 'B': [], 'C': [], '1': [], '2': [], '3': [] };
 
-const createMockModule = (data: any) => ({ __esModule: true, default: data });
+const createMockModule = (data: unknown) => ({ __esModule: true, default: data });
 
-vi.mock('../data/weekday/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-vi.mock('../data/weekday/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-vi.mock('../data/weekday/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/weekday/answers.json', () => createMockModule(mockAnswers));
+vi.mock('../data/weekday/solutions.json', () => createMockModule(mockSolutions));
+vi.mock('../data/weekday/routings.json', () => createMockModule(mockRoutings));
 
-vi.mock('../data/weekend/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-vi.mock('../data/weekend/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-vi.mock('../data/weekend/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/weekend/answers.json', () => createMockModule(mockAnswers));
+vi.mock('../data/weekend/solutions.json', () => createMockModule(mockSolutions));
+vi.mock('../data/weekend/routings.json', () => createMockModule(mockRoutings));
 
-vi.mock('../data/night/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-vi.mock('../data/night/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-vi.mock('../data/night/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/night/answers.json', () => createMockModule(mockAnswers));
+vi.mock('../data/night/solutions.json', () => createMockModule(mockSolutions));
+vi.mock('../data/night/routings.json', () => createMockModule(mockRoutings));
 
-vi.mock('../data/accessible/answers.json', () => createMockModule(mockAnswers), { virtual: true });
-vi.mock('../data/accessible/solutions.json', () => createMockModule(mockSolutions), { virtual: true });
-vi.mock('../data/accessible/routings.json', () => createMockModule(mockRoutings), { virtual: true });
+vi.mock('../data/accessible/answers.json', () => createMockModule(mockAnswers));
+vi.mock('../data/accessible/solutions.json', () => createMockModule(mockSolutions));
+vi.mock('../data/accessible/routings.json', () => createMockModule(mockRoutings));
 
-type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
 
 describe('gameDataLoader', () => {
   beforeEach(() => {
@@ -155,7 +154,7 @@ describe('gameDataLoader', () => {
 
   describe('todayGameIndex', () => {
     beforeEach(() => {
-      vi.useFakeTimers({ advanceTimers: true });
+      vi.useFakeTimers({ shouldAdvanceTime: true });
     });
 
     afterEach(() => {

@@ -1,6 +1,6 @@
 import transfers from './../data/transfers.json';
 import routes from './../data/routes.json';
-import { getGameData, todayGameIndex, NIGHT_GAMES, ACCESSIBLE_GAME } from './gameDataLoader';
+import { getGameData, todayGameIndex, NIGHT_GAMES, ACCESSIBLE_GAME, Solution } from './gameDataLoader';
 
 const ROUTES_WITH_NO_WEEKEND_SERVICE = ['B', 'W'];
 const ROUTES_WITH_NO_NIGHT_SERVICE = ['B', 'C', 'W', 'GS'];
@@ -153,7 +153,7 @@ export const flattenedTodaysTrip = (practiceMode: string | null = null, practice
   return todaysTrip(practiceMode, practiceGameIndex).join('-');
 };
 
-export const todaysSolution = (practiceMode: string | null = null, practiceGameIndex: number | null = null): any => {
+export const todaysSolution = (practiceMode: string | null = null, practiceGameIndex: number | null = null): Solution => {
   const { solutions } = getGameData();
   if (!solutions) {
     throw new Error('Solutions not loaded');

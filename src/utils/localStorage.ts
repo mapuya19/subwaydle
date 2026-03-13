@@ -1,3 +1,7 @@
+import { GameState } from './types';
+import type { GameStats } from './stats';
+import type { GameSettings } from './settings';
+
 const GAME_STATE_KEY = 'gameState';
 const GAME_STATS_KEY = 'gameStats';
 const GAME_SETTINGS_KEY = 'gameSettings';
@@ -17,7 +21,7 @@ const safeGet = (key: string): string | null => {
   if (!isAvailable()) return null;
   try {
     return localStorage.getItem(key);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -27,7 +31,7 @@ const safeSet = (key: string, value: string): boolean => {
   try {
     localStorage.setItem(key, value);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -37,7 +41,7 @@ const safeRemove = (key: string): boolean => {
   try {
     localStorage.removeItem(key);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -52,14 +56,14 @@ const getGameStateKey = (practiceMode: string | null = null, practiceGameIndex: 
   return GAME_STATE_KEY;
 };
 
-export type GameState = any;
+export type { GameState };
 
-export const saveGameStateToLocalStorage = (gameState: GameState, practiceMode: string | null = null, practiceGameIndex: number | null = null): boolean => {
+export const saveGameStateToLocalStorage = (gameState: GameState | null, practiceMode: string | null = null, practiceGameIndex: number | null = null): boolean => {
   if (!gameState) return false;
   const key = getGameStateKey(practiceMode, practiceGameIndex);
   try {
     return safeSet(key, JSON.stringify(gameState));
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -70,29 +74,29 @@ export const loadGameStateFromLocalStorage = (practiceMode: string | null = null
   if (!state || !state.trim()) return null;
   
   try {
-    return JSON.parse(state);
-  } catch (error) {
+    return JSON.parse(state) as GameState;
+  } catch {
     safeRemove(key);
     return null;
   }
 };
 
-export const saveStatsToLocalStorage = (gameStats: any): boolean => {
+export const saveStatsToLocalStorage = (gameStats: GameStats | null): boolean => {
   if (!gameStats) return false;
   try {
     return safeSet(GAME_STATS_KEY, JSON.stringify(gameStats));
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-export const loadStatsFromLocalStorage = (): any | null => {
+export const loadStatsFromLocalStorage = (): GameStats | null => {
   const stats = safeGet(GAME_STATS_KEY);
   if (!stats || !stats.trim()) return null;
   
   try {
-    return JSON.parse(stats);
-  } catch (error) {
+    return JSON.parse(stats) as GameStats;
+  } catch {
     safeRemove(GAME_STATS_KEY);
     return null;
   }
@@ -103,22 +107,22 @@ export const isNewToGame = (practiceMode: string | null = null, practiceGameInde
   return safeGet(gameStateKey) === null && safeGet(GAME_STATS_KEY) === null;
 };
 
-export const saveSettingsToLocalStorage = (gameSettings: any): boolean => {
+export const saveSettingsToLocalStorage = (gameSettings: GameSettings | null): boolean => {
   if (!gameSettings) return false;
   try {
     return safeSet(GAME_SETTINGS_KEY, JSON.stringify(gameSettings));
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-export const loadSettingsFromLocalStorage = (): any | null => {
+export const loadSettingsFromLocalStorage = (): GameSettings | null => {
   const settings = safeGet(GAME_SETTINGS_KEY);
   if (!settings || !settings.trim()) return null;
   
   try {
-    return JSON.parse(settings);
-  } catch (error) {
+    return JSON.parse(settings) as GameSettings;
+  } catch {
     safeRemove(GAME_SETTINGS_KEY);
     return null;
   }

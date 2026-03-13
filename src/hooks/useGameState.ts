@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { flattenedTodaysTrip } from '../utils/answerValidations';
 import { saveGameStateToLocalStorage } from '../utils/localStorage';
 import { PracticeMode } from '../utils/constants';
+import { ToastItem } from '../utils/types';
 
 export const useGameState = (practiceMode: PracticeMode | null, effectivePracticeGameIndex: number | null) => {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
@@ -10,7 +11,7 @@ export const useGameState = (practiceMode: PracticeMode | null, effectivePractic
   const [guesses, setGuesses] = useState<string[][]>([]);
   const [isNotEnoughRoutes, setIsNotEnoughRoutes] = useState<boolean>(false);
   const [isGuessInvalid, setIsGuessInvalid] = useState<boolean>(false);
-  const [toastStack, setToastStack] = useState<Array<{ id: string; message: string; type?: string }>>([]);
+  const [toastStack, setToastStack] = useState<ToastItem[]>([]);
   const [absentRoutes, setAbsentRoutes] = useState<string[]>([]);
   const [presentRoutes, setPresentRoutes] = useState<string[]>([]);
   const [similarRoutes, setSimilarRoutes] = useState<string[]>([]);

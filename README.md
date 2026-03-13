@@ -2,22 +2,33 @@
 
 A fork of the Wordle-inspired NYC Subway daily puzzle game. Enhanced by prioritizing direct, efficient transit paths.
 
-Contains some source code lifted from the [open-source clone](https://github.com/cwackerfuss/word-guessing-game) by Hannah Park. Subwaydle Remastered is a static TypeScript/React app, written using Vite with React, Sass, Semantic UI React and Mapbox. A few Ruby scripts were written to generate JSON data files used by the app.
+Contains some source code lifted from the [open-source clone](https://github.com/cwackerfuss/word-guessing-game) by Hannah Park. Subwaydle Remastered is a static TypeScript/React app, built with Vite, React 19, Sass, Semantic UI React and Mapbox GL. A few Ruby scripts were written to generate JSON data files used by the app.
 
 See the original live at https://www.subwaydle.com
+
+## Tech stack
+
+- **Runtime**: React 19, TypeScript 5.9
+- **Build**: Vite 8, Sass
+- **Testing**: Vitest 4, Testing Library, jsdom
+- **Linting**: ESLint 9 (flat config), typescript-eslint, react-hooks, react-refresh
+- **UI**: Semantic UI React (with React 19 compatibility shim), Mapbox GL 3
+- **Package manager**: Yarn 4 (Berry)
 
 ## Upgrades vs. original
 
 This fork includes the following modifications compared to [the original repository](https://github.com/blahblahblah-/subwaydle):
 
-- ✅ **Build system**: Migrated from Create React App to Vite for faster builds and better performance
-- ✅ **TypeScript**: Complete conversion from JavaScript to TypeScript with full type safety
-- ✅ **Same-color hint**: Orange hint when a guessed route shares the same transit line as the answer (e.g., A, C, E are all Eighth Avenue Line)
-- ✅ **Route filtering logic**: Filters out roundabout routes, prioritizing direct paths with travel distance factors < 1.4x the direct distance
-- ✅ **Practice mode**: Four game modes (Weekday, Weekend, Late Night, Accessible) with URL-based puzzle sharing
-- ✅ **Performance improvements**: Lazy loading of game data reduces initial bundle size and improves page load by 5x
-- ✅ **Component organization**: Reorganized codebase into logical directories (game, modal, stats, UI) with extracted contexts and hooks
-- ✅ **Code quality**: Added PropTypes validation, ErrorBoundary component, and fixed build warnings
+- **Build system**: Migrated from Create React App to Vite 8 for faster builds and better performance
+- **TypeScript**: Complete conversion from JavaScript to TypeScript with strict type safety (zero `any` in source code)
+- **React 19**: Upgraded to React 19 with a compatibility shim for semantic-ui-react (replaces removed `ReactDOM.findDOMNode`)
+- **ESLint 9**: Flat config with typescript-eslint, react-hooks, and react-refresh plugins. Zero errors, zero warnings
+- **Same-color hint**: Orange hint when a guessed route shares the same transit line as the answer (e.g., A, C, E are all Eighth Avenue Line)
+- **Route filtering logic**: Filters out roundabout routes, prioritizing direct paths with travel distance factors < 1.4x the direct distance
+- **Practice mode**: Four game modes (Weekday, Weekend, Late Night, Accessible) with URL-based puzzle sharing
+- **Performance improvements**: Lazy loading of game data reduces initial bundle size and improves page load by 5x
+- **Component organization**: Reorganized codebase into logical directories (game, modal, stats, UI) with extracted contexts and hooks
+- **Dependency hygiene**: Zero vulnerabilities, all dependencies at latest compatible versions
 
 ## Running locally
 

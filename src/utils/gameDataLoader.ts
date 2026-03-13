@@ -7,7 +7,7 @@ interface GameDataCache {
   currentMode: string | null;
 }
 
-let gameDataCache: GameDataCache = {
+const gameDataCache: GameDataCache = {
   answers: null,
   solutions: null,
   routings: null,

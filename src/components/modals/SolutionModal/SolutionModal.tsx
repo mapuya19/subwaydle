@@ -38,7 +38,8 @@ const SolutionModal = ({
   const [isShareButtonShowCopied, setIsShareButtonShowCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalHidden, setIsModalHidden] = useState(false);
-  const modal = useRef<any>(null);
+  // semantic-ui-react Modal component instance has an internal .ref property for DOM access
+  const modal = useRef<InstanceType<typeof Modal> & { ref: React.RefObject<HTMLElement | null> }>(null);
   const trip = todaysTrip(practiceMode, practiceGameIndex);
   const solution = todaysSolution(practiceMode, practiceGameIndex);
   const title = isGameWon ? "Yay! You completed today's trip!" : "Aww, looks like you got lost on the subway...";
@@ -60,16 +61,16 @@ const SolutionModal = ({
   };
 
   useEffect(() => {
+    const el = modal.current?.ref?.current;
+    if (!el) return;
     if (isModalHidden) {
-      modal.current.ref.current.parentElement.setAttribute("style", "display: none !important");
-      modal.current.ref.current.parentElement.parentElement.classList.remove("dimmable");
-      modal.current.ref.current.parentElement.parentElement.classList.remove("dimmed");
+      el.parentElement?.setAttribute("style", "display: none !important");
+      el.parentElement?.parentElement?.classList.remove("dimmable");
+      el.parentElement?.parentElement?.classList.remove("dimmed");
     } else {
-      if (modal.current?.ref?.current) {
-        modal.current.ref.current.parentElement.setAttribute("style", "display: flex !important");
-        modal.current.ref.current.parentElement.parentElement.classList.add("dimmable");
-        modal.current.ref.current.parentElement.parentElement.classList.add("dimmed");
-      }
+      el.parentElement?.setAttribute("style", "display: flex !important");
+      el.parentElement?.parentElement?.classList.add("dimmable");
+      el.parentElement?.parentElement?.classList.add("dimmed");
     }
   }, [isModalHidden]);
 

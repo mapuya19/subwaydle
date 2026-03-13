@@ -11,10 +11,9 @@ interface ToastProps {
 
 const Toast = ({ message, show, index = 0, onComplete }: ToastProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   const hasBeenVisibleRef = useRef<boolean>(false);
   const onCompleteRef = useRef(onComplete);
-  const lockedIndexRef = useRef<number | null>(null);
-  const isLockedRef = useRef<boolean>(false);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -24,20 +23,16 @@ const Toast = ({ message, show, index = 0, onComplete }: ToastProps) => {
     if (show) {
       setIsVisible(true);
       hasBeenVisibleRef.current = true;
-      isLockedRef.current = false;
-      lockedIndexRef.current = null;
+      setLockedIndex(null);
     } else {
-      if (hasBeenVisibleRef.current && lockedIndexRef.current === null) {
-        isLockedRef.current = true;
-        lockedIndexRef.current = index;
+      if (hasBeenVisibleRef.current && lockedIndex === null) {
+        setLockedIndex(index);
       }
       setIsVisible(false);
     }
-  }, [show, index]);
+  }, [show, index, lockedIndex]);
 
-  const positionIndex = isLockedRef.current && lockedIndexRef.current !== null 
-    ? lockedIndexRef.current 
-    : index;
+  const positionIndex = lockedIndex !== null ? lockedIndex : index;
   const topOffset = 60 + (positionIndex * 50);
 
   const handleComplete = () => {

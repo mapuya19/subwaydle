@@ -9,7 +9,7 @@ const readUrlParams = () => {
   const gameParam = urlParams.get('game');
   
   if (practiceParam && gameParam !== null) {
-    if (VALID_PRACTICE_MODES.includes(practiceParam as any)) {
+    if ((VALID_PRACTICE_MODES as readonly string[]).includes(practiceParam)) {
       const gameIndex = parseInt(gameParam, 10);
       if (!isNaN(gameIndex) && gameIndex >= 0) {
         return { mode: practiceParam, gameIndex };

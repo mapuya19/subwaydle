@@ -4,8 +4,9 @@ import { useKeyboard } from './useKeyboard';
 import { routesWithNoService, isValidGuess, updateGuessStatuses, flattenedTodaysTrip } from '../utils/answerValidations';
 import { addStatsForCompletedGame } from '../utils/stats';
 import { ATTEMPTS, ALERT_TIME_MS } from '../utils/constants';
-
-type PracticeMode = 'weekday' | 'weekend' | 'night' | 'accessible' | null;
+import type { GameStats } from '../utils/stats';
+import type { ToastItem } from '../utils/types';
+import type { PracticeMode } from '../utils/constants';
 
 vi.mock('../utils/answerValidations', () => ({
   routesWithNoService: vi.fn(() => []),
@@ -15,21 +16,21 @@ vi.mock('../utils/answerValidations', () => ({
 }));
 
 vi.mock('../utils/stats', () => ({
-  addStatsForCompletedGame: vi.fn((stats: any, count: number) => ({ ...stats, totalGames: stats.totalGames + 1 })),
+  addStatsForCompletedGame: vi.fn((stats: GameStats, _count: number) => ({ ...stats, totalGames: stats.totalGames + 1 })),
 }));
 
 describe('useKeyboard', () => {
   let mockCurrentGuess: string[] = [];
   let mockGuesses: string[][] = [];
-  let mockToastStack: any[] = [];
-  let mockStats: any = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
+  let mockToastStack: ToastItem[] = [];
+  let mockStats: GameStats = { winDistribution: [0, 0, 0, 0, 0, 0], totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0, successRate: 0 };
   
-  const mockSetCurrentGuess = vi.fn((fn: any) => {
+  const mockSetCurrentGuess = vi.fn((fn: string[] | ((prev: string[]) => string[])) => {
     if (typeof fn === 'function') {
       mockCurrentGuess = fn(mockCurrentGuess);
     }
   });
-  const mockSetGuesses = vi.fn((fn: any) => {
+  const mockSetGuesses = vi.fn((fn: string[][] | ((prev: string[][]) => string[][])) => {
     if (typeof fn === 'function') {
       mockGuesses = fn(mockGuesses);
     } else {
@@ -41,7 +42,7 @@ describe('useKeyboard', () => {
   const mockSetIsSolutionsOpen = vi.fn();
   const mockSetIsNotEnoughRoutes = vi.fn();
   const mockSetIsGuessInvalid = vi.fn();
-  const mockSetToastStack = vi.fn((fn: any) => {
+  const mockSetToastStack = vi.fn((fn: ToastItem[] | ((prev: ToastItem[]) => ToastItem[])) => {
     if (typeof fn === 'function') {
       mockToastStack = fn(mockToastStack);
     } else {
@@ -63,7 +64,7 @@ describe('useKeyboard', () => {
     setGuesses: mockSetGuesses,
     currentGuess: mockCurrentGuess,
     setCurrentGuess: mockSetCurrentGuess,
-    practiceMode: null as PracticeMode,
+    practiceMode: null as PracticeMode | null,
     effectivePracticeGameIndex: null as number | null,
     setIsGameWon: mockSetIsGameWon,
     setIsGameLost: mockSetIsGameLost,
@@ -86,6 +87,12 @@ describe('useKeyboard', () => {
     setStats: mockSetStats,
   });
   
+  /** Extract the updater function from a mock setState call argument */
+  const getUpdater = <T>(arg: T | ((prev: T) => T)): ((prev: T) => T) => {
+    if (typeof arg === 'function') return arg as (prev: T) => T;
+    throw new Error('Expected an updater function, got a direct value');
+  };
+
   const defaultProps = getDefaultProps();
 
   beforeEach(() => {
@@ -93,25 +100,25 @@ describe('useKeyboard', () => {
     mockCurrentGuess = [];
     mockGuesses = [];
     mockToastStack = [];
-    mockStats = { totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0 };
+    mockStats = { winDistribution: [0, 0, 0, 0, 0, 0], totalGames: 0, gamesFailed: 0, currentStreak: 0, bestStreak: 0, successRate: 0 };
     (routesWithNoService as ReturnType<typeof vi.fn>).mockReturnValue([]);
     (isValidGuess as ReturnType<typeof vi.fn>).mockReturnValue(true);
     (flattenedTodaysTrip as ReturnType<typeof vi.fn>).mockReturnValue('1-2-3');
-    mockSetCurrentGuess.mockImplementation((fn: any) => {
+    mockSetCurrentGuess.mockImplementation((fn: string[] | ((prev: string[]) => string[])) => {
       if (typeof fn === 'function') {
         mockCurrentGuess = fn(mockCurrentGuess);
       } else {
         mockCurrentGuess = fn;
       }
     });
-    mockSetGuesses.mockImplementation((fn: any) => {
+    mockSetGuesses.mockImplementation((fn: string[][] | ((prev: string[][]) => string[][])) => {
       if (typeof fn === 'function') {
         mockGuesses = fn(mockGuesses);
       } else {
         mockGuesses = fn;
       }
     });
-    mockSetToastStack.mockImplementation((fn: any) => {
+    mockSetToastStack.mockImplementation((fn: ToastItem[] | ((prev: ToastItem[]) => ToastItem[])) => {
       if (typeof fn === 'function') {
         mockToastStack = fn(mockToastStack);
       } else {
@@ -147,8 +154,8 @@ describe('useKeyboard', () => {
         result.current.onChar('1');
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call([])).toEqual([]);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater([])).toEqual([]);
     });
 
     it('does not add character when game is won', () => {
@@ -158,8 +165,8 @@ describe('useKeyboard', () => {
         result.current.onChar('1');
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call(['1'])).toEqual(['1']);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater(['1'])).toEqual(['1']);
     });
 
     it('does not add character when guess is full (3 routes)', () => {
@@ -172,8 +179,8 @@ describe('useKeyboard', () => {
         result.current.onChar('4');
       });
 
-      const lastCall = mockSetCurrentGuess.mock.calls[mockSetCurrentGuess.mock.calls.length - 1][0];
-      expect(lastCall(['1', '2', '3'])).toEqual(['1', '2', '3']);
+      const lastUpdater = getUpdater(mockSetCurrentGuess.mock.calls[mockSetCurrentGuess.mock.calls.length - 1][0]);
+      expect(lastUpdater(['1', '2', '3'])).toEqual(['1', '2', '3']);
     });
 
     it('does not add character when max attempts reached', () => {
@@ -186,8 +193,8 @@ describe('useKeyboard', () => {
         result.current.onChar('1');
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call([])).toEqual([]);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater([])).toEqual([]);
     });
 
     it('does not add routes with no service', () => {
@@ -198,8 +205,8 @@ describe('useKeyboard', () => {
         result.current.onChar('B');
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call([])).toEqual([]);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater([])).toEqual([]);
     });
   });
 
@@ -212,8 +219,8 @@ describe('useKeyboard', () => {
       });
 
       expect(mockSetCurrentGuess).toHaveBeenCalled();
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call(['1', '2', '3'])).toEqual(['1', '2']);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater(['1', '2', '3'])).toEqual(['1', '2']);
     });
 
     it('does nothing when guess is empty', () => {
@@ -223,8 +230,8 @@ describe('useKeyboard', () => {
         result.current.onDelete();
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call([])).toEqual([]);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater([])).toEqual([]);
     });
   });
 
@@ -240,8 +247,8 @@ describe('useKeyboard', () => {
         result.current.onEnter();
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call(['1', '2', '3'])).toEqual(['1', '2', '3']);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater(['1', '2', '3'])).toEqual(['1', '2', '3']);
     });
 
     it('does nothing when game is lost', () => {
@@ -255,8 +262,8 @@ describe('useKeyboard', () => {
         result.current.onEnter();
       });
 
-      const call = mockSetCurrentGuess.mock.calls[0][0];
-      expect(call(['1', '2', '3'])).toEqual(['1', '2', '3']);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[0][0]);
+      expect(updater(['1', '2', '3'])).toEqual(['1', '2', '3']);
     });
 
     it('shows error toast when guess is too short', () => {
@@ -407,8 +414,8 @@ describe('useKeyboard', () => {
         result.current.onEnter();
       });
 
-      const call = mockSetCurrentGuess.mock.calls[mockSetCurrentGuess.mock.calls.length - 1][0];
-      expect(call(['1', '2', '3'])).toEqual([]);
+      const updater = getUpdater(mockSetCurrentGuess.mock.calls[mockSetCurrentGuess.mock.calls.length - 1][0]);
+      expect(updater(['1', '2', '3'])).toEqual([]);
     });
 
     it('handles practice mode and game index', () => {
